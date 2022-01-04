@@ -50,7 +50,8 @@ class LockedArtifact(db.Model):
 
 class Artifact(db.Model):
     __tablename__ = 'Artifact'
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    text = db.Column(db.Text, nullable=False)
 
 
 class LabelingData(db.Model):

@@ -39,7 +39,8 @@ def labeling_with_artifact(target_artifact_id):
             artifact_data = Artifact.query.filter_by(id=target_artifact_id).first()
             all_labels = {row[0] for row in LabelingData.query.with_entities(LabelingData.labeling).all()}
             all_taggers = {row[0] for row in
-                           LabelingData.query.with_entities(LabelingData.username).filter_by(artifact_id=target_artifact_id).all()}
+                           LabelingData.query.with_entities(LabelingData.username).filter_by(
+                               artifact_id=target_artifact_id).all()}
             lock_artifact_by(who_is_signed_in(), target_artifact_id)
 
             return render_template('labeling_pages/artifact.html',
@@ -105,7 +106,8 @@ def toggle_fp():
         action = request.form['action']
 
         n_flaggers = len(FlaggedArtifact.query.filter_by(artifact_id=artifact_id).all())
-        my_flag_report_on_artifact = FlaggedArtifact.query.filter_by(artifact_id=artifact_id).filter_by(added_by=who_is_signed_in()).first()
+        my_flag_report_on_artifact = FlaggedArtifact.query.filter_by(artifact_id=artifact_id).filter_by(
+            added_by=who_is_signed_in()).first()
 
         if my_flag_report_on_artifact is None:
             status = "false"
@@ -150,7 +152,8 @@ def label():
         if duration_sec <= 1:
             return jsonify('{ "status": "Too fast?" }')
 
-        already_labeled_this_sentence = LabelingData.query.filter_by(artifact_id=artifact_id).filter_by(username=who_is_signed_in()).first()
+        already_labeled_this_sentence = LabelingData.query.filter_by(artifact_id=artifact_id).filter_by(
+            username=who_is_signed_in()).first()
 
         if already_labeled_this_sentence is not None:
             already_labeled_this_sentence.labeling = labeling_data

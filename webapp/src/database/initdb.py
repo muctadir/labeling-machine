@@ -29,7 +29,7 @@ def import_my_data():
         return
 
     for i in range(100):
-        db.session.add(Artifact(id=i))
+        db.session.add(Artifact(text=f"random {i}"))
 
     # conn = sqlite3.connect("path/to/data.csv")
     # cursor = conn.cursor()
