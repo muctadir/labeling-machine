@@ -1,10 +1,12 @@
-from flask import render_template, request, redirect, url_for, session
+from flask import render_template, request, redirect, url_for, session, jsonify
 
 from src import app, db
-from src.database.models import User
+from src.database.models import User, LabelingData, Artifact
 from src.helper.consts import CURRENT_TASK
-from src.helper.tools_common import is_signed_in, unlock_artifacts_by, who_is_signed_in, sign_in, sign_out, get_all_users
-from src.helper.tools_labeling import get_labeling_status, get_n_labeled_artifact_per_user, get_overall_labeling_progress
+from src.helper.tools_common import is_signed_in, unlock_artifacts_by, who_is_signed_in, sign_in, sign_out, \
+    get_all_users
+from src.helper.tools_labeling import get_labeling_status, get_n_labeled_artifact_per_user, \
+    get_overall_labeling_progress
 
 
 @app.route("/")
@@ -51,7 +53,8 @@ def signup():
         occupation = request.form['occupation']
         affiliation = request.form['affiliation']
         xp = request.form['years_xp']
-        user_item = User(username=username, gender=gender, education=education, occupation=occupation, affiliation=affiliation, years_xp=xp)
+        user_item = User(username=username, gender=gender, education=education, occupation=occupation,
+                         affiliation=affiliation, years_xp=xp)
         db.session.add(user_item)
         db.session.commit()
         sign_in(username)
@@ -102,3 +105,17 @@ def setstatus():
         return "New Web App status: " + str(IS_SYSTEM_UP)
     else:
         return "Please Sign-in first."
+
+
+@app.route("/labels", methods=['GET'])
+def labels():
+    all_labels = {row[0] for row in LabelingData.query.with_entities(LabelingData.labeling).all()}
+    return render_template('common_pages/labels.html', all_labels=all_labels)
+
+
+@app.route("/artifacts/<label>", methods=['GET'])
+def artifacts_by_label(label):
+    artifacts = [item[0] for item in Artifact.query.filter(Artifact.id.in_(
+        LabelingData.query.filter(LabelingData.labeling == label).with_entities(
+            LabelingData.artifact_id))).with_entities(Artifact.text).all()]
+    return jsonify(artifacts)

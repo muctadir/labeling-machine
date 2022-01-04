@@ -1,0 +1,52 @@
+{% extends "common_pages/common_layout.html" %}
+
+
+{% block headerStuff %}
+{% endblock %}
+
+
+{% block content %}
+    <div class="container-fluid">
+
+        <div class="header navbar">
+            <form class="form-inline" style="justify-content: center;" id="form1">
+                <div class="form-group mx-sm-3 mb-2">
+                    Labels <select class="js-example-basic-single" name="labeling_data" id="label_selector"
+                                   style="width: 400px">
+                    <option value='' selected="selected"></option>
+                    {% for item in all_labels %}
+                        <option value="{{ item }}" title="{{ item }}">{{ item }}</option>
+                    {% endfor %}
+                </select>
+                </div>
+            </form>
+        </div>
+
+        <div class="list-group" id="artifact_container">
+            <p class="list-group-item list-group-item-danger">Select a label</p>
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block scriptsStuff %}
+    <script>
+        $(document).ready(function () {
+            $("#label_selector").change(function (data) {
+                $("#artifact_container").empty();
+                let label = data.currentTarget.value;
+                if (label) {
+                    $.get(`artifacts/${label}`, function (artifacts) {
+                        artifacts.forEach(function (art) {
+                            $("#artifact_container").append(
+                                `<div class="list-group-item"><p class="mb-1">${art}</p></div>`
+                            );
+                        });
+                    });
+                } else {
+                    $("#artifact_container").html('<p class="list-group-item list-group-item-danger">Select a label</p>');
+                }
+            });
+        });
+    </script>
+{% endblock %}
