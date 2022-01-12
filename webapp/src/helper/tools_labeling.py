@@ -34,7 +34,8 @@ def get_n_labeled_artifact_per_user():
     """
     Return a dictionary of {username: n_labeled_artifact, ...}
     """
-    result = db.session.query(LabelingData.username, func.count(distinct(LabelingData.artifact_id))).group_by(LabelingData.username).all()
+    result = db.session.query(LabelingData.created_by, func.count(distinct(LabelingData.artifact_id))).group_by(
+        LabelingData.created_by).all()
     ret = {}
     for row in result:
         ret[row[0]] = row[1]
@@ -43,10 +44,11 @@ def get_n_labeled_artifact_per_user():
 
 def get_n_artifacts_labeled_by_n_or_more(num):
     artifacts_labeled_num_times = db.session.query(LabelingData.artifact_id).group_by(LabelingData.artifact_id).having(
-        func.count(distinct(LabelingData.username)) >= num)
+        func.count(distinct(LabelingData.created_by)) >= num)
     artifacts_flagged_2_times = FlaggedArtifact.query.with_entities(
         FlaggedArtifact.artifact_id).group_by(FlaggedArtifact.artifact_id).having(func.count() > 1)
-    result = artifacts_labeled_num_times.except_(artifacts_flagged_2_times).with_entities(func.count(LabelingData.artifact_id)).scalar()
+    result = artifacts_labeled_num_times.except_(artifacts_flagged_2_times).with_entities(
+        func.count(LabelingData.artifact_id)).scalar()
     return result
 
 
@@ -55,7 +57,8 @@ def choose_next_random_api():
 
     # ############### 1. Remove Already Labeled By Me
     labeled_artifact_ids = {row[0] for row in
-                            db.session.query(distinct(LabelingData.artifact_id)).filter(LabelingData.username == who_is_signed_in()).all()}
+                            db.session.query(distinct(LabelingData.artifact_id)).filter(
+                                LabelingData.created_by == who_is_signed_in()).all()}
     candidate_artifact_ids -= labeled_artifact_ids
 
     # ############### 2. Remove APIs Locked by two at the moment
@@ -73,7 +76,7 @@ def choose_next_random_api():
     # ############### 4. Starting from the javadoc-class with least labeled APIs, select a random API
 
     n_tagger_per_artifact = {row[0]: row[1] for row in
-                             db.session.query(LabelingData.artifact_id, func.count(distinct(LabelingData.username))) \
+                             db.session.query(LabelingData.artifact_id, func.count(distinct(LabelingData.created_by))) \
                                  .group_by(LabelingData.artifact_id).all()}
     candidate_groups = [[], []]  # index 0,1: artifacts labeled by 0/1 tagger
     for artifact_id in candidate_artifact_ids:

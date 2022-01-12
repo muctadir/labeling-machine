@@ -45,7 +45,7 @@ def get_all_users():
 def unlock_artifacts_by(username):
     if not username:
         return
-    myLock = LockedArtifact.query.filter_by(username=username).first()
+    myLock = LockedArtifact.query.filter_by(created_by=username).first()
     if myLock is not None:
         db.session.delete(myLock)
         db.session.commit()
@@ -55,13 +55,14 @@ def lock_artifact_by(username, artifact_id):
     if not username:
         return
     unlock_artifacts_by(username)
-    db.session.add(LockedArtifact(username=username, artifact_id=artifact_id))
+    db.session.add(LockedArtifact(created_by=username, artifact_id=artifact_id))
     db.session.commit()
 
 
 def get_locked_artifacts():
     update_api_locks()
-    result = db.session.query(LockedArtifact.artifact_id, func.count(LockedArtifact.username)).group_by(LockedArtifact.artifact_id).all()
+    result = db.session.query(LockedArtifact.artifact_id, func.count(LockedArtifact.created_by)).group_by(
+        LockedArtifact.artifact_id).all()
     all_locks = {row[0]: row[1] for row in result}
     return all_locks
 
@@ -81,8 +82,8 @@ def get_false_positive_artifacts():
     Return artifacts marked as false positive by me, or marked as false positive by at least 2 people
     """
     q_artifacts_marked_fp_by_me = db.session.query(distinct(FlaggedArtifact.artifact_id)).filter(
-        FlaggedArtifact.added_by == who_is_signed_in())
-    q_artifacts_marked_fp_by_2 = db.session.query(distinct(FlaggedArtifact.artifact_id)).group_by(FlaggedArtifact.artifact_id).having(
-        func.count() > 1)
+        FlaggedArtifact.created_by == who_is_signed_in())
+    q_artifacts_marked_fp_by_2 = db.session.query(
+        distinct(FlaggedArtifact.artifact_id)).group_by(FlaggedArtifact.artifact_id).having(func.count() > 1)
     result = {row[0] for row in q_artifacts_marked_fp_by_me.union(q_artifacts_marked_fp_by_2).all()}
     return result

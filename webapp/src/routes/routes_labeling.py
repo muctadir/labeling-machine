@@ -39,7 +39,7 @@ def labeling_with_artifact(target_artifact_id):
             artifact_data = Artifact.query.filter_by(id=target_artifact_id).first()
             all_labels = {row[0] for row in LabelingData.query.with_entities(LabelingData.labeling).all()}
             all_taggers = {row[0] for row in
-                           LabelingData.query.with_entities(LabelingData.username).filter_by(
+                           LabelingData.query.with_entities(LabelingData.created_by).filter_by(
                                artifact_id=target_artifact_id).all()}
             lock_artifact_by(who_is_signed_in(), target_artifact_id)
 
@@ -79,8 +79,8 @@ def note():
             return jsonify('{{ "error": "", "{}_new_status": {}, "total": {} }}'.format(note_text, status, n))
         if action == 'toggle':
             if my_note_report_on_artifact is None:
-                noteedPost = Note(artifact_id=artifact_id, note=note_text, added_by=who_is_signed_in())
-                db.session.add(noteedPost)
+                noteed_post = Note(artifact_id=artifact_id, note=note_text, created_by=who_is_signed_in())
+                db.session.add(noteed_post)
                 db.session.commit()
                 n += 1
                 status = "true"
@@ -118,7 +118,7 @@ def toggle_fp():
             return jsonify('{{ "error": "", "new_status": {}, "nFP": {} }}'.format(status, n_flaggers))
         if action == 'toggle':
             if my_flag_report_on_artifact is None:
-                new_fp_report = FlaggedArtifact(artifact_id=artifact_id, added_by=who_is_signed_in())
+                new_fp_report = FlaggedArtifact(artifact_id=artifact_id, created_by=who_is_signed_in())
                 db.session.add(new_fp_report)
                 db.session.commit()
                 n_flaggers += 1
@@ -161,10 +161,12 @@ def label():
             db.session.commit()
             return jsonify('{ "status": "updated" }')
         else:
-            jr = LabelingData(artifact_id=artifact_id, labeling=labeling_data, remark='', username=who_is_signed_in(),
+            jr = LabelingData(artifact_id=artifact_id, labeling=labeling_data, remark='', created_by=who_is_signed_in(),
                               duration_sec=duration_sec)
             db.session.add(jr)
-            db.session.flush()  # if you want to fetch autoincreament column of inserted row. See: https://stackoverflow.com/questions/1316952
+            # if you want to fetch autoincreament column of inserted row.
+            # See: https://stackoverflow.com/questions/1316952
+            db.session.flush()
             db.session.commit()
             return jsonify('{ "status": "success" }')
     else:
