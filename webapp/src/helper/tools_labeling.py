@@ -3,7 +3,7 @@ import random
 from sqlalchemy import func, distinct
 
 from src import db
-from src.database.models import LabelingData, Artifact, FlaggedArtifact
+from src.database.models import LabelingData, Artifact, FlaggedArtifact, ArtifactLabelRelation
 from src.helper.consts import N_API_NEEDS_LABELING
 from src.helper.tools_common import who_is_signed_in, get_locked_artifacts, get_false_positive_artifacts
 
@@ -34,8 +34,9 @@ def get_n_labeled_artifact_per_user():
     """
     Return a dictionary of {username: n_labeled_artifact, ...}
     """
-    result = db.session.query(LabelingData.created_by, func.count(distinct(LabelingData.artifact_id))).group_by(
-        LabelingData.created_by).all()
+    result = db.session.query(
+        ArtifactLabelRelation.created_by, func.count(distinct(ArtifactLabelRelation.artifact_id))).group_by(
+        ArtifactLabelRelation.created_by).all()
     ret = {}
     for row in result:
         ret[row[0]] = row[1]
@@ -43,12 +44,12 @@ def get_n_labeled_artifact_per_user():
 
 
 def get_n_artifacts_labeled_by_n_or_more(num):
-    artifacts_labeled_num_times = db.session.query(LabelingData.artifact_id).group_by(LabelingData.artifact_id).having(
-        func.count(distinct(LabelingData.created_by)) >= num)
+    artifacts_labeled_num_times = db.session.query(ArtifactLabelRelation.artifact_id).group_by(
+        ArtifactLabelRelation.artifact_id).having(func.count(distinct(ArtifactLabelRelation.created_by)) >= num)
     artifacts_flagged_2_times = FlaggedArtifact.query.with_entities(
         FlaggedArtifact.artifact_id).group_by(FlaggedArtifact.artifact_id).having(func.count() > 1)
     result = artifacts_labeled_num_times.except_(artifacts_flagged_2_times).with_entities(
-        func.count(LabelingData.artifact_id)).scalar()
+        func.count(ArtifactLabelRelation.artifact_id)).scalar()
     return result
 
 
@@ -56,9 +57,8 @@ def choose_next_random_api():
     candidate_artifact_ids = {row[0] for row in db.session.query(Artifact.id).all()}
 
     # ############### 1. Remove Already Labeled By Me
-    labeled_artifact_ids = {row[0] for row in
-                            db.session.query(distinct(LabelingData.artifact_id)).filter(
-                                LabelingData.created_by == who_is_signed_in()).all()}
+    labeled_artifact_ids = {row[0] for row in db.session.query(distinct(ArtifactLabelRelation.artifact_id)).filter(
+        ArtifactLabelRelation.created_by == who_is_signed_in()).all()}
     candidate_artifact_ids -= labeled_artifact_ids
 
     # ############### 2. Remove APIs Locked by two at the moment
@@ -76,8 +76,9 @@ def choose_next_random_api():
     # ############### 4. Starting from the javadoc-class with least labeled APIs, select a random API
 
     n_tagger_per_artifact = {row[0]: row[1] for row in
-                             db.session.query(LabelingData.artifact_id, func.count(distinct(LabelingData.created_by))) \
-                                 .group_by(LabelingData.artifact_id).all()}
+                             db.session.query(ArtifactLabelRelation.artifact_id,
+                                              func.count(distinct(LabelingData.created_by))).group_by(
+                                 ArtifactLabelRelation.artifact_id).all()}
     candidate_groups = [[], []]  # index 0,1: artifacts labeled by 0/1 tagger
     for artifact_id in candidate_artifact_ids:
         if artifact_id not in n_tagger_per_artifact.keys():

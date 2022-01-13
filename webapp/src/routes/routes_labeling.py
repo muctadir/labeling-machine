@@ -1,4 +1,5 @@
 from flask import render_template, request, redirect, url_for, jsonify
+from sqlalchemy import select
 
 from src import app
 from src.database.models import Note
@@ -37,10 +38,9 @@ def labeling_with_artifact(target_artifact_id):
             target_artifact_id = int(target_artifact_id)
 
             artifact_data = Artifact.query.filter_by(id=target_artifact_id).first()
-            all_labels = {row[0] for row in LabelingData.query.with_entities(LabelingData.labeling).all()}
-            all_taggers = {row[0] for row in
-                           LabelingData.query.with_entities(LabelingData.created_by).filter_by(
-                               artifact_id=target_artifact_id).all()}
+            all_labels = db.session.execute(select(LabelingData.id, LabelingData.labeling)).all()
+            all_taggers = [a for a, in db.session.execute(
+                select(ArtifactLabelRelation.created_by).where(ArtifactLabelRelation.artifact_id == 78)).all()]
             lock_artifact_by(who_is_signed_in(), target_artifact_id)
 
             return render_template('labeling_pages/artifact.html',
@@ -69,7 +69,7 @@ def note():
 
         n = len(Note.query.filter_by(artifact_id=artifact_id).filter_by(note=note_text).all())
         my_note_report_on_artifact = Note.query.filter_by(artifact_id=artifact_id).filter_by(note=note_text).filter_by(
-            added_by=who_is_signed_in()).first()
+            created_by=who_is_signed_in()).first()
         if my_note_report_on_artifact is None:
             status = "false"
         else:
@@ -107,7 +107,7 @@ def toggle_fp():
 
         n_flaggers = len(FlaggedArtifact.query.filter_by(artifact_id=artifact_id).all())
         my_flag_report_on_artifact = FlaggedArtifact.query.filter_by(artifact_id=artifact_id).filter_by(
-            added_by=who_is_signed_in()).first()
+            created_by=who_is_signed_in()).first()
 
         if my_flag_report_on_artifact is None:
             status = "false"
@@ -145,29 +145,36 @@ def label():
         if request.form['artifact_id'] == '' or request.form['duration'] == '' or request.form['labeling_data'] == '':
             return jsonify('{ "status": "Empty arguments" }')
 
-        artifact_id = int(request.form['artifact_id'])
-        labeling_data = request.form['labeling_data'].strip()
         duration_sec = int(request.form['duration'])
-
         if duration_sec <= 1:
             return jsonify('{ "status": "Too fast?" }')
 
-        already_labeled_this_sentence = LabelingData.query.filter_by(artifact_id=artifact_id).filter_by(
-            username=who_is_signed_in()).first()
+        labeling_data = request.form['labeling_data'].strip()
+        artifact_id = int(request.form['artifact_id'])
+        jr = db.session.execute(select(LabelingData).where(
+            LabelingData.labeling == labeling_data)).scalar() or LabelingData(
+            labeling=labeling_data, remark='', created_by=who_is_signed_in())
 
-        if already_labeled_this_sentence is not None:
-            already_labeled_this_sentence.labeling = labeling_data
-            already_labeled_this_sentence.duration_sec = duration_sec
-            db.session.commit()
-            return jsonify('{ "status": "updated" }')
+        labeled_artifact = db.session.execute(
+            select(ArtifactLabelRelation).where(ArtifactLabelRelation.artifact_id == artifact_id,
+                                                ArtifactLabelRelation.created_by == who_is_signed_in())).scalar()
+
+        if labeled_artifact is not None:
+            labeled_artifact.label = jr
+            labeled_artifact.duration_sec = duration_sec
+            status = 'updated'
         else:
-            jr = LabelingData(artifact_id=artifact_id, labeling=labeling_data, remark='', created_by=who_is_signed_in(),
-                              duration_sec=duration_sec)
-            db.session.add(jr)
-            # if you want to fetch autoincreament column of inserted row.
-            # See: https://stackoverflow.com/questions/1316952
-            db.session.flush()
-            db.session.commit()
-            return jsonify('{ "status": "success" }')
+            ar = db.session.execute(select(Artifact).where(Artifact.id == artifact_id)).scalar()
+            labeled_artifact = ArtifactLabelRelation(label=jr, artifact=ar, created_by=who_is_signed_in(),
+                                                     duration_sec=duration_sec)
+            status = 'success'
+
+        db.session.add(jr, labeled_artifact)
+        # if you want to fetch autoincreament column of inserted row.
+        # See: https://stackoverflow.com/questions/1316952
+        db.session.flush()
+        db.session.commit()
+        return jsonify(f'{{ "status": "{status}" }}')
+
     else:
         return "Not POST!"

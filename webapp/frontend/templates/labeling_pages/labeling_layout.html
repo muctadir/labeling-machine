@@ -65,7 +65,7 @@
             <div class="form-group mx-sm-3 mb-2">
                 <select class="js-example-basic-single" name="labeling_data" id="label_selector" style="width: 400px">
                     <option value='' selected="selected"></option>
-                    {% for item in existing_labeling_data %}
+                    {% for key, item in existing_labeling_data %}
                         <option value="{{ item }}" title="{{ item }}">{{ item }}</option>
                     {% endfor %}
                 </select>

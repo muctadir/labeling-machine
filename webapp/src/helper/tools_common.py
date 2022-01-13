@@ -36,7 +36,7 @@ def who_is_signed_in():
 
 
 def get_all_users():
-    sql = """SELECT username FROM User"""
+    sql = 'SELECT username FROM User'
     result = db.engine.execute(sql)
     users = [user[0] for user in result]
     return users
@@ -71,7 +71,7 @@ def update_api_locks():
     all_locks = LockedArtifact.query.all()
     now_datetime = datetime.utcnow()
     for aLock in all_locks:
-        if (now_datetime - aLock.locked_at).total_seconds() / 60 >= 15:  # 15min
+        if (now_datetime - aLock.created_at).total_seconds() / 60 >= 15:  # 15min
             # print("Unlocking Artifact: {} ->  {}:{}".format(aLock.username, aLock.sourceId, aLock.artifact_post_id))
             db.session.delete(aLock)
     db.session.commit()

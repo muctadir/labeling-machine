@@ -1,7 +1,8 @@
 from flask import render_template, request, redirect, url_for, session, jsonify
+from sqlalchemy import select
 
 from src import app, db
-from src.database.models import User, LabelingData, Artifact
+from src.database.models import User, LabelingData, Artifact, ArtifactLabelRelation
 from src.helper.consts import CURRENT_TASK
 from src.helper.tools_common import is_signed_in, unlock_artifacts_by, who_is_signed_in, sign_in, sign_out, \
     get_all_users
@@ -109,13 +110,15 @@ def setstatus():
 
 @app.route("/labels", methods=['GET'])
 def labels():
-    all_labels = {row[0] for row in LabelingData.query.with_entities(LabelingData.labeling).all()}
+    all_labels = LabelingData.query.with_entities(LabelingData.labeling, LabelingData.id).all()
     return render_template('common_pages/labels.html', all_labels=all_labels)
 
 
-@app.route("/artifacts/<label>", methods=['GET'])
-def artifacts_by_label(label):
-    artifacts = [item[0] for item in Artifact.query.filter(Artifact.id.in_(
-        LabelingData.query.filter(LabelingData.labeling == label).with_entities(
-            LabelingData.artifact_id))).with_entities(Artifact.text).all()]
+@app.route("/artifacts/<label_id>", methods=['GET'])
+def artifacts_by_label(label_id):
+    # ar = LabelingData.query.filter_by(id=label_id).first().artifacts_relation
+
+    artifacts = [item[0] for item in db.session.execute(
+        select(Artifact.text).join(Artifact.labels_relation).where(
+            ArtifactLabelRelation.label_id == label_id)).all()]
     return jsonify(artifacts)

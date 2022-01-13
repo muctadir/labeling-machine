@@ -14,8 +14,8 @@
                     Labels <select class="js-example-basic-single" name="labeling_data" id="label_selector"
                                    style="width: 400px">
                     <option value='' selected="selected"></option>
-                    {% for item in all_labels %}
-                        <option value="{{ item }}" title="{{ item }}">{{ item }}</option>
+                    {% for item, key in all_labels %}
+                        <option value="{{ key }}" title="{{ key }}">{{ item }}</option>
                     {% endfor %}
                 </select>
                 </div>

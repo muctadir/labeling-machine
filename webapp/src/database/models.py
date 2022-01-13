@@ -7,6 +7,7 @@ from src import db
 
 class __TrackedModel(db.Model):
     __abstract__ = True
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     created_at = db.Column(db.DateTime, default=func.now())
     created_by = db.Column(db.Text, nullable=True)
 
@@ -34,7 +35,6 @@ class Note(__TrackedModel):
     Additional notes on artifacts. e.g., "Nice example", "Needs extra caution".
     """
     __tablename__ = 'Note'
-    id = db.Column(db.INTEGER, primary_key=True, autoincrement=True)
     note = db.Column(db.Text, nullable=False)
     artifact_id = db.Column(db.Integer, ForeignKey('Artifact.id'))
     artifact = relationship('Artifact')
@@ -42,42 +42,37 @@ class Note(__TrackedModel):
 
 class FlaggedArtifact(__TrackedModel):
     __tablename__ = 'FlaggedArtifact'
-    id = db.Column(db.INTEGER, primary_key=True, autoincrement=True)
     artifact_id = db.Column(db.Integer, ForeignKey('Artifact.id'))
     artifact = relationship('Artifact')
 
 
 class LockedArtifact(__TrackedModel):
     __tablename__ = 'LockedArtifact'
-    id = db.Column(db.INTEGER, primary_key=True, autoincrement=True)
     artifact_id = db.Column(db.Integer, ForeignKey('Artifact.id'))
     artifact = relationship('Artifact')
 
 
-class __ArtifactLabelRelation(__TrackedModel):
+class ArtifactLabelRelation(__TrackedModel):
     __tablename__ = 'ArtifactLabelRelation'
-    artifact_id = Column(ForeignKey('Artifact.id'), primary_key=True)
-    label_id = Column(ForeignKey('Label.id'), primary_key=True)
-    artifact = relationship('Artifact', back_populates='labels')
-    label = relationship('LabelingData', back_populates='artifacts')
+    artifact_id = Column(ForeignKey('Artifact.id'))
+    label_id = Column(ForeignKey('Label.id'))
+    artifact = relationship('Artifact', back_populates='labels_relation')
+    label = relationship('LabelingData', back_populates='artifacts_relation')
+    duration_sec = db.Column(db.Integer)
 
 
 class Artifact(__TrackedModel):
     __tablename__ = 'Artifact'
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     text = db.Column(db.Text, nullable=False)
-    labels = relationship('__ArtifactLabelRelation', back_populates='artifact')
+    labels_relation = relationship('ArtifactLabelRelation', back_populates='artifact')
 
 
 class LabelingData(__TrackedModel):
     __tablename__ = 'Label'
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-
     # update the following two lines to store labeled data from users
-    labeling = db.Column(db.Text, nullable=False)  # actual data provided by labelers
+    labeling = db.Column(db.Text, nullable=False, unique=True)  # actual data provided by labelers
     remark = db.Column(db.Text)  # optional data provided by labelers
-    duration_sec = db.Column(db.Integer)
-    artifacts = relationship('__ArtifactLabelRelation', back_populates='label')
+    artifacts_relation = relationship('ArtifactLabelRelation', back_populates='label')
 
 # class ReviewedParagraph(db.Model):
 #     __tablename__ = 'ReviewedParagraph'
