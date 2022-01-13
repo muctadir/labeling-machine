@@ -1,0 +1,40 @@
+{% extends "common_pages/common_layout.html" %}
+
+
+{% block headerStuff %}
+{% endblock %}
+
+
+{% block content %}
+    <div class="container-fluid">
+        <table>
+            <thead>
+            <tr>Artifact Id</tr><tr>Artifact</tr><tr>Labels</tr>
+            </thead>
+        </table>
+
+    </div>
+
+{% endblock %}
+
+{% block scriptsStuff %}
+    <script>
+        $(document).ready(function () {
+            $("#label_selector").change(function (data) {
+                $("#artifact_container").empty();
+                let label = data.currentTarget.value;
+                if (label) {
+                    $.get(`artifacts/${label}`, function (artifacts) {
+                        artifacts.forEach(function (art) {
+                            $("#artifact_container").append(
+                                `<div class="list-group-item"><p class="mb-1">[id#${art.id}] ${art.text}</p></div>`
+                            );
+                        });
+                    });
+                } else {
+                    $("#artifact_container").html('<p class="list-group-item list-group-item-danger">Select a label</p>');
+                }
+            });
+        });
+    </script>
+{% endblock %}

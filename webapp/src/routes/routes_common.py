@@ -1,5 +1,5 @@
 from flask import render_template, request, redirect, url_for, session, jsonify
-from sqlalchemy import select
+from sqlalchemy import select, distinct
 from sqlalchemy.sql.functions import count
 
 from src import app, db
@@ -121,3 +121,23 @@ def artifacts_by_label(label_id):
         select(Artifact.id, Artifact.text).join(Artifact.labels_relation).where(
             ArtifactLabelRelation.label_id == label_id)).all()]
     return jsonify(artifacts)
+
+
+@app.route('/artifacts_with_conflicting_labels', methods=['GET'])
+def artifacts_with_conflicting_labels():
+    conflict_art = db.session.execute(select(Artifact.id, Artifact.text).join(
+        ArtifactLabelRelation.label).join(ArtifactLabelRelation.artifact).group_by(
+        ArtifactLabelRelation.artifact_id).having(count(distinct(ArtifactLabelRelation.label_id)) >= 2)).all()
+
+    art_ids = [aid for aid, _ in conflict_art]
+    art_lbl = {}
+    for lid, lbl, aid in db.session.execute(
+            select(LabelingData.id, LabelingData.labeling, ArtifactLabelRelation.artifact_id).join(
+                ArtifactLabelRelation.label).where(ArtifactLabelRelation.artifact_id.in_(art_ids))).all():
+        art_lbl[aid] = art_lbl.get(aid, [])
+        art_lbl[aid].append((lid, lbl))
+
+    return render_template('common_pages/conflict.html',
+                           conflict_labels=[
+                               dict(id=aid, text=atxt, labels=[dict(id=lid, label=lbl) for lid, lbl in art_lbl[aid]])
+                               for aid, atxt in conflict_art])
