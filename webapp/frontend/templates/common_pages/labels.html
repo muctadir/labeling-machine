@@ -39,7 +39,7 @@
                     $.get(`artifacts/${label}`, function (artifacts) {
                         artifacts.forEach(function (art) {
                             $("#artifact_container").append(
-                                `<div class="list-group-item"><p class="mb-1">${art}</p></div>`
+                                `<div class="list-group-item"><p class="mb-1">[id#${art.id}] ${art.text}</p></div>`
                             );
                         });
                     });

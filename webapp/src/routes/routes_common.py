@@ -1,5 +1,6 @@
 from flask import render_template, request, redirect, url_for, session, jsonify
 from sqlalchemy import select
+from sqlalchemy.sql.functions import count
 
 from src import app, db
 from src.database.models import User, LabelingData, Artifact, ArtifactLabelRelation
@@ -116,9 +117,7 @@ def labels():
 
 @app.route("/artifacts/<label_id>", methods=['GET'])
 def artifacts_by_label(label_id):
-    # ar = LabelingData.query.filter_by(id=label_id).first().artifacts_relation
-
-    artifacts = [item[0] for item in db.session.execute(
-        select(Artifact.text).join(Artifact.labels_relation).where(
+    artifacts = [dict(id=aid, text=text) for aid, text in db.session.execute(
+        select(Artifact.id, Artifact.text).join(Artifact.labels_relation).where(
             ArtifactLabelRelation.label_id == label_id)).all()]
     return jsonify(artifacts)
