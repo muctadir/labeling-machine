@@ -194,7 +194,7 @@ def update_label_for_artifact(artifact_id, label_id, updated_label):
     artifact_id = int(artifact_id)
     label_id = int(label_id)
     try:
-        update_artifact_label(artifact_id, label_id, updated_label)
+        update_artifact_label(artifact_id, label_id, updated_label, who_is_signed_in())
     except ValueError as e:
         return jsonify(f'{{"error": "{e}"}}'), 400
     return jsonify('{"status":"successfully updated artifact with new label"}')
