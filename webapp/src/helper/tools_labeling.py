@@ -4,8 +4,9 @@ from sqlalchemy import func, distinct
 
 from src import db
 from src.database.models import LabelingData, Artifact, FlaggedArtifact, ArtifactLabelRelation
+from src.database.queries.artifact_queries import get_locked_artifacts
 from src.helper.consts import N_API_NEEDS_LABELING
-from src.helper.tools_common import who_is_signed_in, get_locked_artifacts, get_false_positive_artifacts
+from src.helper.tools_common import who_is_signed_in, get_false_positive_artifacts
 
 
 def get_labeling_status(username):  # OLD: get_user_labeling_status

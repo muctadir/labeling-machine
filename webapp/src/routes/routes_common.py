@@ -4,8 +4,9 @@ from sqlalchemy.sql.functions import count
 
 from src import app, db
 from src.database.models import User, LabelingData, Artifact, ArtifactLabelRelation
+from src.database.queries.artifact_queries import unlock_artifacts_by
 from src.helper.consts import CURRENT_TASK
-from src.helper.tools_common import is_signed_in, unlock_artifacts_by, who_is_signed_in, sign_in, sign_out, \
+from src.helper.tools_common import is_signed_in, who_is_signed_in, sign_in, sign_out, \
     get_all_users
 from src.helper.tools_labeling import get_labeling_status, get_n_labeled_artifact_per_user, \
     get_overall_labeling_progress

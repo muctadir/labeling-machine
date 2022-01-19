@@ -1,13 +1,12 @@
-from typing import List
-
 from flask import render_template, request, redirect, url_for, jsonify
-from sqlalchemy import select, delete
+from sqlalchemy import select
 
 from src import app
 from src.database.models import Note
+from src.database.queries.artifact_queries import lock_artifact_by
 from src.database.queries.label_queries import get_or_create_label_with_text, delete_label, update_artifact_label
 from src.helper.consts import *
-from src.helper.tools_common import is_signed_in, lock_artifact_by, string_none_or_empty
+from src.helper.tools_common import is_signed_in, string_none_or_empty
 from src.helper.tools_labeling import *
 
 
@@ -155,7 +154,7 @@ def label():
 
         labeling_data = request.form['labeling_data'].strip()
         artifact_id = int(request.form['artifact_id'])
-        lbl = get_or_create_label_with_text(labeling_data)
+        lbl = get_or_create_label_with_text(labeling_data, who_is_signed_in())
 
         labeled_artifact = db.session.execute(
             select(ArtifactLabelRelation).where(ArtifactLabelRelation.artifact_id == artifact_id,

@@ -1,10 +1,8 @@
-from datetime import datetime
-
 from flask import session
 from sqlalchemy import func, distinct
 
 from src import db
-from src.database.models import User, LockedArtifact, FlaggedArtifact
+from src.database.models import User, FlaggedArtifact
 
 
 def string_none_or_empty(string: str):
@@ -45,41 +43,6 @@ def get_all_users():
     result = db.engine.execute(sql)
     users = [user[0] for user in result]
     return users
-
-
-def unlock_artifacts_by(username):
-    if not username:
-        return
-    myLock = LockedArtifact.query.filter_by(created_by=username).first()
-    if myLock is not None:
-        db.session.delete(myLock)
-        db.session.commit()
-
-
-def lock_artifact_by(username, artifact_id):
-    if not username:
-        return
-    unlock_artifacts_by(username)
-    db.session.add(LockedArtifact(created_by=username, artifact_id=artifact_id))
-    db.session.commit()
-
-
-def get_locked_artifacts():
-    update_api_locks()
-    result = db.session.query(LockedArtifact.artifact_id, func.count(LockedArtifact.created_by)).group_by(
-        LockedArtifact.artifact_id).all()
-    all_locks = {row[0]: row[1] for row in result}
-    return all_locks
-
-
-def update_api_locks():
-    all_locks = LockedArtifact.query.all()
-    now_datetime = datetime.utcnow()
-    for aLock in all_locks:
-        if (now_datetime - aLock.created_at).total_seconds() / 60 >= 15:  # 15min
-            # print("Unlocking Artifact: {} ->  {}:{}".format(aLock.username, aLock.sourceId, aLock.artifact_post_id))
-            db.session.delete(aLock)
-    db.session.commit()
 
 
 def get_false_positive_artifacts():
