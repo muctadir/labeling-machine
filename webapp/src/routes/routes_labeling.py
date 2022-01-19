@@ -1,3 +1,5 @@
+from typing import List
+
 from flask import render_template, request, redirect, url_for, jsonify
 from sqlalchemy import select
 
@@ -136,13 +138,14 @@ def toggle_fp():
         return "Not POST!"
 
 
-@app.route("/label", methods=['GET', 'POST'])
+@app.route("/label", methods=['POST'])
 def label():
     if CURRENT_TASK['level'] != 0:  # We are not at Labeling phase anymore.
         return jsonify('{ "error": "We are not labeling. Labeling data is in read-only mode." }')
 
     if request.method == 'POST':
-        if request.form['artifact_id'] == '' or request.form['duration'] == '' or request.form['labeling_data'] == '':
+        if string_none_or_empty(request.form['artifact_id']) == '' or string_none_or_empty(
+                request.form['duration']) or string_none_or_empty(request.form['labeling_data']):
             return jsonify('{ "status": "Empty arguments" }')
 
         duration_sec = int(request.form['duration'])
@@ -151,25 +154,23 @@ def label():
 
         labeling_data = request.form['labeling_data'].strip()
         artifact_id = int(request.form['artifact_id'])
-        jr = db.session.execute(select(LabelingData).where(
-            LabelingData.labeling == labeling_data)).scalar() or LabelingData(
-            labeling=labeling_data, remark='', created_by=who_is_signed_in())
+        lbl = get_or_create_label_with_text(labeling_data)
 
         labeled_artifact = db.session.execute(
             select(ArtifactLabelRelation).where(ArtifactLabelRelation.artifact_id == artifact_id,
                                                 ArtifactLabelRelation.created_by == who_is_signed_in())).scalar()
 
         if labeled_artifact is not None:
-            labeled_artifact.label = jr
+            labeled_artifact.label = lbl
             labeled_artifact.duration_sec = duration_sec
             status = 'updated'
         else:
             ar = db.session.execute(select(Artifact).where(Artifact.id == artifact_id)).scalar()
-            labeled_artifact = ArtifactLabelRelation(label=jr, artifact=ar, created_by=who_is_signed_in(),
+            labeled_artifact = ArtifactLabelRelation(label=lbl, artifact=ar, created_by=who_is_signed_in(),
                                                      duration_sec=duration_sec)
             status = 'success'
 
-        db.session.add(jr, labeled_artifact)
+        db.session.add(labeled_artifact)
         # if you want to fetch autoincreament column of inserted row.
         # See: https://stackoverflow.com/questions/1316952
         db.session.flush()
@@ -178,3 +179,47 @@ def label():
 
     else:
         return "Not POST!"
+
+
+def string_none_or_empty(string: str):
+    string = string or ''
+    return not string.strip()
+
+
+def get_or_create_label_with_text(label_txt: str):
+    lbl = db.session.execute(select(LabelingData).where(
+        LabelingData.labeling == label_txt)).scalar() or LabelingData(
+        labeling=label_txt, remark='', created_by=who_is_signed_in())
+    db.session.add(lbl)
+    db.session.flush()
+    db.session.commit()
+    return lbl
+
+
+@app.route('/update_label_for_artifact/<artifact_id>/<label_id>/<updated_label>', methods=['PUT'])
+def update_label_for_artifact(artifact_id, label_id, updated_label):
+    if request.method != 'PUT':
+        return "Not PUT!"
+
+    if string_none_or_empty(artifact_id) or string_none_or_empty(label_id) or string_none_or_empty(
+            updated_label):
+        return jsonify('{ "status": "Empty arguments" }')
+
+    artifact_id = int(artifact_id)
+    label_id = int(label_id)
+    updated_label = get_or_create_label_with_text(updated_label)
+    artifact_label_rel = db.session.execute(
+        select(ArtifactLabelRelation).where(ArtifactLabelRelation.artifact_id == artifact_id).where(
+            ArtifactLabelRelation.label_id == label_id)).scalar()
+
+    if artifact_label_rel is None:
+        return jsonify('{"error": "artifact is not labeled with this label"}')
+
+    artifact_label_rel.label_id = updated_label.id
+    db.session.add(artifact_label_rel)
+    db.session.flush()
+    db.session.commit()
+    return jsonify('{"status":"successfully updated artifact with new label"}')
+
+# @app.route('/remove_label', methods=['DELETE'])
+# def delete_label
