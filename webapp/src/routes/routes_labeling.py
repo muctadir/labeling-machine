@@ -1,7 +1,7 @@
 from typing import List
 
 from flask import render_template, request, redirect, url_for, jsonify
-from sqlalchemy import select
+from sqlalchemy import select, delete
 
 from src import app
 from src.database.models import Note
@@ -135,18 +135,18 @@ def toggle_fp():
             return jsonify('{{ "error": "Bad Request: {}" }}'.format(action))
 
     else:
-        return "Not POST!"
+        return "Not POST!", 400
 
 
 @app.route("/label", methods=['POST'])
 def label():
     if CURRENT_TASK['level'] != 0:  # We are not at Labeling phase anymore.
-        return jsonify('{ "error": "We are not labeling. Labeling data is in read-only mode." }')
+        return jsonify('{ "error": "We are not labeling. Labeling data is in read-only mode." }'), 400
 
     if request.method == 'POST':
         if string_none_or_empty(request.form['artifact_id']) == '' or string_none_or_empty(
                 request.form['duration']) or string_none_or_empty(request.form['labeling_data']):
-            return jsonify('{ "status": "Empty arguments" }')
+            return jsonify('{ "status": "Empty arguments" }'), 400
 
         duration_sec = int(request.form['duration'])
         if duration_sec <= 1:
@@ -178,7 +178,7 @@ def label():
         return jsonify(f'{{ "status": "{status}" }}')
 
     else:
-        return "Not POST!"
+        return "Not POST!", 400
 
 
 def string_none_or_empty(string: str):
@@ -199,11 +199,11 @@ def get_or_create_label_with_text(label_txt: str):
 @app.route('/update_label_for_artifact/<artifact_id>/<label_id>/<updated_label>', methods=['PUT'])
 def update_label_for_artifact(artifact_id, label_id, updated_label):
     if request.method != 'PUT':
-        return "Not PUT!"
+        return "Not PUT!", 400
 
     if string_none_or_empty(artifact_id) or string_none_or_empty(label_id) or string_none_or_empty(
             updated_label):
-        return jsonify('{ "status": "Empty arguments" }')
+        return jsonify('{ "status": "Empty arguments" }'), 400
 
     artifact_id = int(artifact_id)
     label_id = int(label_id)
@@ -213,7 +213,7 @@ def update_label_for_artifact(artifact_id, label_id, updated_label):
             ArtifactLabelRelation.label_id == label_id)).scalar()
 
     if artifact_label_rel is None:
-        return jsonify('{"error": "artifact is not labeled with this label"}')
+        return jsonify('{"error": "artifact is not labeled with this label"}'), 400
 
     artifact_label_rel.label_id = updated_label.id
     db.session.add(artifact_label_rel)
@@ -221,5 +221,23 @@ def update_label_for_artifact(artifact_id, label_id, updated_label):
     db.session.commit()
     return jsonify('{"status":"successfully updated artifact with new label"}')
 
-# @app.route('/remove_label', methods=['DELETE'])
-# def delete_label
+
+@app.route('/remove_label/<label_id>', methods=['DELETE'])
+def delete_label(label_id):
+    if request.method != 'DELETE':
+        return "Not DELETE!", 400
+    if string_none_or_empty(label_id):
+        return "parameter empty", 400
+
+    label_id = int(label_id)
+    labeled_arts = db.session.execute(
+        select(ArtifactLabelRelation).where(ArtifactLabelRelation.label_id == label_id)).all()
+
+    if labeled_arts is not None and len(labeled_arts) > 0:
+        return jsonify('{"error":"artifacts already labeled with this label"}'), 400
+
+    # TODO: later on check if there are related theme.
+
+    db.session.execute(delete(LabelingData).where(LabelingData.id == label_id))
+    db.session.commit()
+    return jsonify('{"status":"deleted successfully!"}')
