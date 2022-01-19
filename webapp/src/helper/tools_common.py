@@ -7,6 +7,11 @@ from src import db
 from src.database.models import User, LockedArtifact, FlaggedArtifact
 
 
+def string_none_or_empty(string: str):
+    string = string or ''
+    return not string.strip()
+
+
 def sign_in(username):
     session['username'] = username
 
