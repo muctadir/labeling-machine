@@ -1,9 +1,12 @@
 from src import app, db
 from src.database.models import *
 
-
 # Registers 'initdb' cli command.
 # Usage: `flask initdb`
+from src.database.queries.artifact_queries import add_artifacts
+from src.helper.tools_common import string_none_or_empty
+
+
 @app.cli.command('initdb')
 def initdb():
     print("Creating non-existing tables ...", end='')
@@ -28,8 +31,13 @@ def import_my_data():
         print("\t[ALREADY DONE]")
         return
 
-    for i in range(100):
-        db.session.add(Artifact(text=f"random {i}"))
+    text = []
+    with open('./db/sample.txt') as f:
+        for line in f:
+            if not string_none_or_empty(line):
+                text.append(line.strip())
+
+    add_artifacts(text, 'admin')
 
     # conn = sqlite3.connect("path/to/data.csv")
     # cursor = conn.cursor()
@@ -40,5 +48,4 @@ def import_my_data():
     #     db.session.add(Artifact(id=id))
     # conn.close()
 
-    db.session.commit()
     print("\t[SUCCESS]")

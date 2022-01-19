@@ -9,10 +9,8 @@ from src.helper.tools_common import string_none_or_empty
 
 
 def add_artifacts(artifact_txt_list: List[str], creator: str):
-    stmt = insert(Artifact)
-    for art in artifact_txt_list:
-        if not string_none_or_empty(art):
-            stmt = stmt.values(text=art, created_by=creator)
+    artifact_txt_list = filter(lambda s: not string_none_or_empty(s), artifact_txt_list)
+    stmt = insert(Artifact).values([dict(text=art, created_by=creator) for art in artifact_txt_list])
     db.session.execute(stmt)
     db.session.commit()
 
