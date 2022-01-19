@@ -1,3 +1,5 @@
+from os import path
+
 from src import app, db
 from src.database.models import *
 
@@ -31,11 +33,16 @@ def import_my_data():
         print("\t[ALREADY DONE]")
         return
 
+    sample_file = './db/sample.txt'
     text = []
-    with open('./db/sample.txt') as f:
-        for line in f:
-            if not string_none_or_empty(line):
-                text.append(line.strip())
+    if path.exists(sample_file):
+        with open(sample_file) as f:
+            for line in f:
+                if not string_none_or_empty(line):
+                    text.append(line.strip())
+    else:
+        print(f'No file at {sample_file}. Uploading random value.')
+        text = [f'random {i}' for i in range(100)]
 
     add_artifacts(text, 'admin')
 
