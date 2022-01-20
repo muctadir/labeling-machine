@@ -1,8 +1,9 @@
 from os import path
 
-from src import app, db
-from src.database.models import *
+from faker import Faker
 
+from src import app
+from src.database.models import *
 # Registers 'initdb' cli command.
 # Usage: `flask initdb`
 from src.database.queries.artifact_queries import add_artifacts
@@ -41,8 +42,9 @@ def import_my_data():
                 if not string_none_or_empty(line):
                     text.append(line.strip())
     else:
-        print(f'No file at {sample_file}. Uploading random value.')
-        text = [f'random {i}' for i in range(100)]
+        print(f'No file at {sample_file}. Uploading random value with Faker.', end='')
+        fake = Faker()
+        text = [fake.paragraph(15) for _ in range(100)]
 
     add_artifacts(text, 'admin')
 
