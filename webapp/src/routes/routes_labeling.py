@@ -41,8 +41,8 @@ def labeling_with_artifact(target_artifact_id):
 
             artifact_data = Artifact.query.filter_by(id=target_artifact_id).first()
             all_labels = db.session.execute(select(LabelingData.id, LabelingData.labeling)).all()
-            all_taggers = [a for a, in db.session.execute(
-                select(ArtifactLabelRelation.created_by).where(ArtifactLabelRelation.artifact_id == 78)).all()]
+            all_taggers = [a for a, in db.session.execute(select(ArtifactLabelRelation.created_by).where(
+                ArtifactLabelRelation.artifact_id == target_artifact_id)).all()]
             lock_artifact_by(who_is_signed_in(), target_artifact_id)
 
             return render_template('labeling_pages/artifact.html',
@@ -51,8 +51,7 @@ def labeling_with_artifact(target_artifact_id):
                                    overall_labeling_status=get_overall_labeling_progress(),
                                    user_info=get_labeling_status(who_is_signed_in()),
                                    existing_labeling_data=all_labels,
-                                   all_taggers=', '.join(all_taggers) if all_taggers is not None else None
-                                   )
+                                   all_taggers=', '.join(all_taggers) if all_taggers is not None else None)
         else:
             return "Please Sign-in first."
     else:
@@ -153,6 +152,7 @@ def label():
             return jsonify('{ "status": "Too fast?" }')
 
         labeling_data = request.form['labeling_data'].strip()
+        remark = request.form['remark'].strip() if not string_none_or_empty(request.form['remark']) else None
         artifact_id = int(request.form['artifact_id'])
         lbl = get_or_create_label_with_text(labeling_data, who_is_signed_in())
 
@@ -163,11 +163,12 @@ def label():
         if labeled_artifact is not None:
             labeled_artifact.label = lbl
             labeled_artifact.duration_sec = duration_sec
+            labeled_artifact.remark = remark
             status = 'updated'
         else:
             ar = db.session.execute(select(Artifact).where(Artifact.id == artifact_id)).scalar()
             labeled_artifact = ArtifactLabelRelation(label=lbl, artifact=ar, created_by=who_is_signed_in(),
-                                                     duration_sec=duration_sec)
+                                                     duration_sec=duration_sec, remark=remark)
             status = 'success'
 
         db.session.add(labeled_artifact)

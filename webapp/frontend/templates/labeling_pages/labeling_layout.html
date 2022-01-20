@@ -1,7 +1,7 @@
 {% extends "common_pages/common_layout.html" %}
 
 {% block headerStuff %}
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-beta.1/dist/css/select2.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-beta.1/dist/css/select2.min.css" rel="stylesheet"/>
     {#    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css"#}
     {#          integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">#}
     {#    <link href="//cdnjs.cloudflare.com/ajax/libs/animate.css/3.2.0/animate.min.css" rel="stylesheet">#}
@@ -35,7 +35,8 @@
             <div style="text-align: center; font-size: small;">
                 {{ overall_labeling_status['n_artifacts_labeled'] }}
                 out of
-                {{ overall_labeling_status['n_artifacts_to_be_labeled'] }} | <em>{{ overall_labeling_status['source_name'] }}</em>
+                {{ overall_labeling_status['n_artifacts_to_be_labeled'] }} |
+                <em>{{ overall_labeling_status['source_name'] }}</em>
             </div>
             <div class="progress">
                 <div id="top-progress-bar-status" class="progress-bar" role="progressbar" style="width: 0%;"
@@ -61,6 +62,20 @@
     </div>
 
     <div class="lower-panel fixed-bottom ">
+        {#        <form class="form-inline">#}
+        {#            <label class="sr-only" for="inlineFormInputName2">Name</label>#}
+        {#            <input type="text" class="form-control mb-2 mr-sm-2" id="inlineFormInputName2" placeholder="Jane Doe">#}
+        {##}
+        {#            <label class="sr-only" for="inlineFormInputGroupUsername2">Username</label>#}
+        {#            <div class="input-group mb-2 mr-sm-2">#}
+        {#                <div class="input-group-prepend">#}
+        {#                    <div class="input-group-text">@</div>#}
+        {#                </div>#}
+        {#                <input type="text" class="form-control" id="inlineFormInputGroupUsername2" placeholder="Username">#}
+        {#            </div>#}
+        {#            <button type="submit" class="btn btn-primary mb-2">Submit</button>#}
+        {#        </form>#}
+
         <form class="form-inline" style="justify-content: center;" id="form1">
             <div class="form-group mx-sm-3 mb-2">
                 <select class="js-example-basic-single" name="labeling_data" id="label_selector" style="width: 400px">
@@ -70,7 +85,11 @@
                     {% endfor %}
                 </select>
             </div>
-            <button type="button" id="submit_btn" form="form1" class="btn btn-primary mb-2" disabled>Submit</button>
+
+            <input type="text" id="remark" class="form-control mx-sm-3 mb-auto" placeholder="Remark"
+                   style="width: 60em;">
+
+            <button type="button" id="submit_btn" form="form1" class="btn btn-primary mb-auto" disabled>Submit</button>
         </form>
     </div>
 {% endblock %}
@@ -90,24 +109,29 @@
 
             // Implement Here
             $('#label_selector').select2(
-                    {   tags: true,
-                        width: 'resolve',
-                        placeholder: "Select a label",
-                        allowClear: true
-                    }
+                {
+                    tags: true,
+                    width: 'resolve',
+                    placeholder: "Select a label",
+                    allowClear: true
+                }
             );
 
-            $(document.body).on("change","#label_selector",function(){
-                if(this.value == "")
+            $(document.body).on("change", "#label_selector", function () {
+                if (this.value == "")
                     $("#submit_btn").attr('disabled', "");
                 else
                     $("#submit_btn").removeAttr('disabled');
             });
 
             $("#submit_btn").click(function () {
-                let data_json = {     artifact_id: {{  artifact_id }},
-                                                labeling_data: $('#label_selector').val(),
-                                                duration: get_elapsed_seconds()};
+                let data_json = {
+                        artifact_id: {{  artifact_id }},
+                        labeling_data: $('#label_selector').val(),
+                        remark: $('#remark').val(),
+                        duration: get_elapsed_seconds()
+                    }
+                ;
                 {#let data = JSON.stringify(data_json);#}
                 $.post("/label", data_json, function (response, status) {
                     let response_json = $.parseJSON(response.toString())
