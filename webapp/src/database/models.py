@@ -1,4 +1,3 @@
-from sqlalchemy import Column, ForeignKey
 from sqlalchemy.orm import validates, relationship
 from sqlalchemy.sql import func
 
@@ -36,26 +35,27 @@ class Note(__TrackedModel):
     """
     __tablename__ = 'Note'
     note = db.Column(db.Text, nullable=False)
-    artifact_id = db.Column(db.Integer, ForeignKey('Artifact.id'))
+    artifact_id = db.Column(db.Integer, db.ForeignKey('Artifact.id'))
     artifact = relationship('Artifact')
 
 
 class FlaggedArtifact(__TrackedModel):
     __tablename__ = 'FlaggedArtifact'
-    artifact_id = db.Column(db.Integer, ForeignKey('Artifact.id'))
+    artifact_id = db.Column(db.Integer, db.ForeignKey('Artifact.id'))
     artifact = relationship('Artifact')
 
 
 class LockedArtifact(__TrackedModel):
     __tablename__ = 'LockedArtifact'
-    artifact_id = db.Column(db.Integer, ForeignKey('Artifact.id'))
+    artifact_id = db.Column(db.Integer, db.ForeignKey('Artifact.id'))
     artifact = relationship('Artifact')
 
 
 class ArtifactLabelRelation(__TrackedModel):
     __tablename__ = 'ArtifactLabelRelation'
-    artifact_id = Column(ForeignKey('Artifact.id'))
-    label_id = Column(ForeignKey('Label.id'))
+    artifact_id = db.Column(db.ForeignKey('Artifact.id'))
+    label_id = db.Column(db.ForeignKey('Label.id'))
+    remark = db.Column(db.Text)
     artifact = relationship('Artifact', back_populates='labels_relation')
     label = relationship('LabelingData', back_populates='artifacts_relation')
     duration_sec = db.Column(db.Integer)

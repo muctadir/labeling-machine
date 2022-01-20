@@ -118,9 +118,10 @@ def labels():
 
 @app.route("/artifacts/<label_id>", methods=['GET'])
 def artifacts_by_label(label_id):
-    artifacts = [dict(id=aid, text=text) for aid, text in db.session.execute(
-        select(Artifact.id, Artifact.text).join(Artifact.labels_relation).where(
-            ArtifactLabelRelation.label_id == label_id)).all()]
+    artifacts = [dict(id=aid, text=text, creator=creator, remark=remark)
+                 for aid, text, creator, remark in db.session.execute(
+            select(Artifact.id, Artifact.text, ArtifactLabelRelation.created_by, ArtifactLabelRelation.remark
+                   ).join(Artifact.labels_relation).where(ArtifactLabelRelation.label_id == label_id)).all()]
     return jsonify(artifacts)
 
 
@@ -132,13 +133,16 @@ def artifacts_with_conflicting_labels():
 
     art_ids = [aid for aid, _ in conflict_art]
     art_lbl = {}
-    for lid, lbl, aid in db.session.execute(
-            select(LabelingData.id, LabelingData.labeling, ArtifactLabelRelation.artifact_id).join(
-                ArtifactLabelRelation.label).where(ArtifactLabelRelation.artifact_id.in_(art_ids))).all():
+    for lid, lbl, aid, creator, remark in db.session.execute(
+            select(
+                LabelingData.id, LabelingData.labeling, ArtifactLabelRelation.artifact_id,
+                ArtifactLabelRelation.created_by, ArtifactLabelRelation.remark
+            ).join(ArtifactLabelRelation.label).where(ArtifactLabelRelation.artifact_id.in_(art_ids))).all():
         art_lbl[aid] = art_lbl.get(aid, [])
-        art_lbl[aid].append((lid, lbl))
+        art_lbl[aid].append((lid, lbl, creator, remark))
 
     return render_template('common_pages/conflict.html',
                            conflict_labels=[
-                               dict(id=aid, text=atxt, labels=[dict(id=lid, label=lbl) for lid, lbl in art_lbl[aid]])
+                               dict(id=aid, text=atxt, labels=[dict(id=lid, label=lbl, creator=creator, remark=remark)
+                                                               for lid, lbl, creator, remark in art_lbl[aid]])
                                for aid, atxt in conflict_art])

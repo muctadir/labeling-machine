@@ -24,7 +24,11 @@
                         <td style="text-align: left;">{{ data['text'] }}</td>
                         <td>
                             {% for label in data['labels'] %}
-                                <div>[#{{ label['id'] }}] {{ label['label'] }}</div>
+                                <div class="card" style="text-align: left">
+                                    <div>Label: [#{{ label['id'] }}] {{ label['label'] }}</div>
+                                    <div>Labeled by: {{ label['creator'] }}</div>
+                                    <div>Remark: {{ label['remark'] }}</div>
+                                </div>
                             {% endfor %}
                         </td>
                     </tr>
