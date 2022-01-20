@@ -8,19 +8,22 @@ from src.database.models import Artifact, LockedArtifact
 from src.helper.tools_common import string_none_or_empty
 
 
-def add_artifacts(artifact_txt_list: List[str], creator: str):
+def add_artifacts(artifact_txt_list: List[str], creator: str) -> List[int]:
     artifact_txt_list = filter(lambda s: not string_none_or_empty(s), artifact_txt_list)
-    stmt = insert(Artifact).values([dict(text=art, created_by=creator) for art in artifact_txt_list])
-    db.session.execute(stmt)
+    inserted_ids = []
+    for art in artifact_txt_list:
+        stmt = insert(Artifact).values(text=art, created_by=creator)
+        inserted_ids.append(db.session.execute(stmt).inserted_primary_key[0])
     db.session.commit()
+    return inserted_ids
 
 
 def unlock_artifacts_by(username):
     if not username:
         return
-    myLock = LockedArtifact.query.filter_by(created_by=username).first()
-    if myLock is not None:
-        db.session.delete(myLock)
+    my_lock = LockedArtifact.query.filter_by(created_by=username).first()
+    if my_lock is not None:
+        db.session.delete(my_lock)
         db.session.commit()
 
 

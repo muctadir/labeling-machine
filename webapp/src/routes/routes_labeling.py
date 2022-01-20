@@ -3,8 +3,9 @@ from sqlalchemy import select
 
 from src import app
 from src.database.models import Note
-from src.database.queries.artifact_queries import lock_artifact_by
-from src.database.queries.label_queries import get_or_create_label_with_text, delete_label, update_artifact_label
+from src.database.queries.artifact_queries import lock_artifact_by, add_artifacts
+from src.database.queries.label_queries import get_or_create_label_with_text, delete_label, update_artifact_label, \
+    label_artifact
 from src.helper.consts import *
 from src.helper.tools_common import is_signed_in, string_none_or_empty
 from src.helper.tools_labeling import *
@@ -143,7 +144,7 @@ def label():
         return jsonify('{ "error": "We are not labeling. Labeling data is in read-only mode." }'), 400
 
     if request.method == 'POST':
-        if string_none_or_empty(request.form['artifact_id']) == '' or string_none_or_empty(
+        if string_none_or_empty(request.form['artifact_id']) or string_none_or_empty(
                 request.form['duration']) or string_none_or_empty(request.form['labeling_data']):
             return jsonify('{ "status": "Empty arguments" }'), 400
 
@@ -154,28 +155,8 @@ def label():
         labeling_data = request.form['labeling_data'].strip()
         remark = request.form['remark'].strip() if not string_none_or_empty(request.form['remark']) else None
         artifact_id = int(request.form['artifact_id'])
-        lbl = get_or_create_label_with_text(labeling_data, who_is_signed_in())
 
-        labeled_artifact = db.session.execute(
-            select(ArtifactLabelRelation).where(ArtifactLabelRelation.artifact_id == artifact_id,
-                                                ArtifactLabelRelation.created_by == who_is_signed_in())).scalar()
-
-        if labeled_artifact is not None:
-            labeled_artifact.label = lbl
-            labeled_artifact.duration_sec = duration_sec
-            labeled_artifact.remark = remark
-            status = 'updated'
-        else:
-            ar = db.session.execute(select(Artifact).where(Artifact.id == artifact_id)).scalar()
-            labeled_artifact = ArtifactLabelRelation(label=lbl, artifact=ar, created_by=who_is_signed_in(),
-                                                     duration_sec=duration_sec, remark=remark)
-            status = 'success'
-
-        db.session.add(labeled_artifact)
-        # if you want to fetch autoincreament column of inserted row.
-        # See: https://stackoverflow.com/questions/1316952
-        db.session.flush()
-        db.session.commit()
+        status = label_artifact(artifact_id, labeling_data, remark, duration_sec, who_is_signed_in())
         return jsonify(f'{{ "status": "{status}" }}')
 
     else:
@@ -214,3 +195,26 @@ def remove_label(label_id):
         return jsonify(f'{{"error":"{e}"}}'), 400
 
     return jsonify('{"status":"deleted successfully!"}')
+
+
+@app.route('/manual_label', methods=['GET', 'POST'])
+def manual_label():
+    if request.method == 'GET':
+        all_labels = db.session.execute(select(LabelingData.id, LabelingData.labeling)).all()
+        return render_template('labeling_pages/manual_labeling.html',
+                               existing_labeling_data=all_labels,
+                               overall_labeling_status=get_overall_labeling_progress())
+    elif request.method == 'POST':
+        if string_none_or_empty(request.form['artifact_txt']) or string_none_or_empty(
+                request.form['duration']) or string_none_or_empty(request.form['labeling_data']):
+            return jsonify('{ "status": "Empty arguments" }'), 400
+
+        labeling_data = request.form['labeling_data'].strip()
+        remark = request.form['remark'].strip() if not string_none_or_empty(request.form['remark']) else None
+        duration_sec = int(request.form['duration'])
+        artifact_id = add_artifacts([request.form['artifact_txt'].strip()], who_is_signed_in())[0]
+        status = label_artifact(artifact_id, labeling_data, remark, duration_sec, who_is_signed_in())
+        return jsonify(f'{{ "status": "{status}" }}')
+
+    else:
+        return 'invalid', 400

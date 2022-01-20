@@ -1,7 +1,7 @@
 from sqlalchemy import select, delete, update
 
 from src import db
-from src.database.models import LabelingData, ArtifactLabelRelation
+from src.database.models import LabelingData, ArtifactLabelRelation, Artifact
 from src.helper.tools_common import string_none_or_empty
 
 
@@ -58,3 +58,25 @@ def get_or_create_label_with_text(label_txt: str, creator: str):
     db.session.flush()
     db.session.commit()
     return lbl
+
+
+def label_artifact(artifact_id: int, labeling_data: str, remark: str, duration_sec: int, creator: str):
+    lbl = get_or_create_label_with_text(labeling_data, creator)
+    labeled_artifact = db.session.execute(
+        select(ArtifactLabelRelation).where(ArtifactLabelRelation.artifact_id == artifact_id,
+                                            ArtifactLabelRelation.created_by == creator)).scalar()
+
+    if labeled_artifact is not None:
+        labeled_artifact.label = lbl
+        labeled_artifact.duration_sec = duration_sec
+        labeled_artifact.remark = remark
+        status = 'updated'
+    else:
+        ar = db.session.execute(select(Artifact).where(Artifact.id == artifact_id)).scalar()
+        labeled_artifact = ArtifactLabelRelation(label=lbl, artifact=ar, created_by=creator,
+                                                 duration_sec=duration_sec, remark=remark)
+        status = 'success'
+
+    db.session.add(labeled_artifact)
+    db.session.commit()
+    return status

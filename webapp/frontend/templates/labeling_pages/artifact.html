@@ -1,5 +1,50 @@
 {% extends "labeling_pages/labeling_layout.html" %}
 
+{% block navigation_bar %}
+    <div class="header">
+        <div style="">
+            <button class="btn btn-sm btn-outline-danger"
+                    type="submit"
+                    id="fpBtn"
+                    onclick="ToggleFlagBtn({{ artifact_id }})"
+                    title="This artifact is irrelevant to our aim"
+                    style="">Flag (?)
+            </button>
+
+            <button class="btn btn-sm btn-outline-info"
+                    type="submit"
+                    id="interestingBtn"
+                    onclick="ToggleInterestingBtn({{ artifact_id }})"
+                    title="This artifact seems a good example to be discussed in the paper"
+                    style="">Interesting (?)
+            </button>
+        </div>
+        <div style="width: 25%">
+            <div style="text-align: center; font-size: small;">
+                {{ overall_labeling_status['n_artifacts_labeled'] }}
+                out of
+                {{ overall_labeling_status['n_artifacts_to_be_labeled'] }} |
+                <em>{{ overall_labeling_status['source_name'] }}</em>
+            </div>
+            <div class="progress">
+                <div id="top-progress-bar-status" class="progress-bar" role="progressbar" style="width: 0%;"
+                     aria-valuenow="0"
+                     aria-valuemin="0"
+                     aria-valuemax="100">
+                </div>
+            </div>
+        </div>
+
+        <button class="btn btn-outline-success"
+                type="submit"
+                id="next-skip-btn"
+                onclick="skip_next_artifact()"
+                style="width: 15%"> Skip
+        </button>
+
+    </div> <!--End of Header -->
+{% endblock %}
+
 
 {% block artifact_content %}
     <h4>Artifact # {{ artifact_id }} </h4>
@@ -10,4 +55,31 @@
         <h5>Taggers: {{ all_taggers | length }} tagger</h5>
     {% endif %}
 
+{% endblock %}
+
+{% block submit_script %}
+    <script>
+        function init() {
+            InitProgressbar({{ overall_labeling_status['n_artifacts_labeled'] }},
+                {{ overall_labeling_status['n_artifacts_to_be_labeled'] }});
+            InitFlagBtn({{ artifact_id }});
+            InitInterestingBtn({{ artifact_id }});
+        }
+
+        function on_submit() {
+            let data_json = {
+                    artifact_id: {{  artifact_id }},
+                    labeling_data: $('#label_selector').val(),
+                    remark: $('#remark').val(),
+                    duration: get_elapsed_seconds()
+                }
+            ;
+            {#let data = JSON.stringify(data_json);#}
+            $.post("/label", data_json, function (response, status) {
+                let response_json = $.parseJSON(response.toString())
+                ShowNotification(response_json['status'], "success");
+                ChangeSkipToNext();
+            });
+        }
+    </script>
 {% endblock %}

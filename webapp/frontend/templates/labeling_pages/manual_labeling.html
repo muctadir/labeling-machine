@@ -1,0 +1,37 @@
+{% extends "labeling_pages/labeling_layout.html" %}
+
+{% block artifact_content %}
+    <div class="mx-auto" style="width: 80em;">
+        <form>
+            <div class="form-group">
+                <label for="exampleFormControlTextarea1">Artifact</label>
+                <textarea class="form-control" id="artifactText" rows="8"></textarea>
+            </div>
+        </form>
+    </div>
+{% endblock %}
+
+
+{% block submit_script %}
+    <script>
+        function init() {
+            console.log('nothing to init');
+        }
+
+        function on_submit() {
+            let data_json = {
+                artifact_txt: $('#artifactText').val(),
+                labeling_data: $('#label_selector').val(),
+                remark: $('#remark').val(),
+                duration: get_elapsed_seconds()
+            };
+            $.post("/manual_label", data_json, function (response, status) {
+                console.log(response);
+                let response_json = $.parseJSON(response.toString());
+                ShowNotification(response_json['status'], "success");
+                ChangeSkipToNext();
+                $('#artifactText').val('');
+            });
+        }
+    </script>
+{% endblock %}
