@@ -1,4 +1,5 @@
-from sqlalchemy import select, delete, update
+from sqlalchemy import select, delete, update, distinct
+from sqlalchemy.sql.functions import count
 
 from src import db
 from src.database.models import LabelingData, ArtifactLabelRelation, Artifact
@@ -80,3 +81,13 @@ def label_artifact(artifact_id: int, labeling_data: str, remark: str, duration_s
     db.session.add(labeled_artifact)
     db.session.commit()
     return status
+
+
+def get_n_labeled_artifact_per_user():
+    """
+    Return a dictionary of {username: n_labeled_artifact, ...}
+    """
+    result = db.session.query(
+        ArtifactLabelRelation.created_by, count(distinct(ArtifactLabelRelation.artifact_id))).group_by(
+        ArtifactLabelRelation.created_by).all()
+    return {user: lab_art for user, lab_art in result}

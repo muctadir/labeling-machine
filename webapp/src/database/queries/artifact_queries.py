@@ -1,10 +1,10 @@
 from datetime import datetime
 from typing import List
 
-from sqlalchemy import insert, func
+from sqlalchemy import insert, func, select
 
 from src import db
-from src.database.models import Artifact, LockedArtifact
+from src.database.models import Artifact, LockedArtifact, ArtifactLabelRelation
 from src.helper.tools_common import string_none_or_empty
 
 
@@ -51,3 +51,14 @@ def update_api_locks():
             # print("Unlocking Artifact: {} ->  {}:{}".format(aLock.username, aLock.sourceId, aLock.artifact_post_id))
             db.session.delete(aLock)
     db.session.commit()
+
+
+def total_artifact_count() -> int:
+    return len(db.session.execute(select(Artifact.id)).all())
+
+
+def artifact_needs_labeling_count() -> int:
+    query = select(Artifact.id).except_(
+        select(ArtifactLabelRelation.artifact_id).group_by(ArtifactLabelRelation.artifact_id).having(
+            func.count(ArtifactLabelRelation.created_by) > 1))
+    return len(db.session.execute(query).all())

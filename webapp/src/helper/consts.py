@@ -2,7 +2,6 @@
 ############## Controlling Progress of webapp ##################
 ################################################################
 IS_SYSTEM_UP = True  # By default when we run the app, It's out of access (Note: this is also true when server resets)
-N_API_NEEDS_LABELING = 398 * 2
 TASKS = [{'name': 'Labeling Phase', 'route': '/labeling', 'level': 0},
          {'name': 'Reviewing Phase', 'route': '/reviewing', 'level': 1}]
 CURRENT_TASK = TASKS[0]

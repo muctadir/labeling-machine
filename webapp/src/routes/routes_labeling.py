@@ -2,9 +2,9 @@ from flask import render_template, request, redirect, url_for, jsonify
 from sqlalchemy import select
 
 from src import app
-from src.database.models import Note
+from src.database.models import Note, LabelingData
 from src.database.queries.artifact_queries import lock_artifact_by, add_artifacts
-from src.database.queries.label_queries import get_or_create_label_with_text, delete_label, update_artifact_label, \
+from src.database.queries.label_queries import delete_label, update_artifact_label, \
     label_artifact
 from src.helper.consts import *
 from src.helper.tools_common import is_signed_in, string_none_or_empty
@@ -18,8 +18,8 @@ def labeling():
             # This is not fully correct! because maybe tagger A label N needed artifacts,
             # but since #tagged_by_two is less than two, app still propose artifacts to guy A
             n_api_tagged_by_two_or_more = get_n_artifacts_labeled_by_n_or_more(2)
-            if n_api_tagged_by_two_or_more >= N_API_NEEDS_LABELING:
-                return "We are done. All {} APIs are tagged by 2+ taggers.".format(N_API_NEEDS_LABELING)
+            if n_api_tagged_by_two_or_more >= total_artifact_count():
+                return "We are done. All {} APIs are tagged by 2+ taggers.".format(total_artifact_count())
             else:
                 selected_artifact_id = choose_next_random_api()
                 if selected_artifact_id < 0:
