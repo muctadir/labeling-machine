@@ -17,6 +17,7 @@ class User(db.Model):
     """
     __tablename__ = 'User'
     username = db.Column(db.Text, primary_key=True)
+    password = db.Column(db.String(100), nullable=False)
     gender = db.Column(db.Text)
     education = db.Column(db.Text)
     occupation = db.Column(db.Text)

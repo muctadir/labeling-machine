@@ -1,3 +1,4 @@
+import os
 from os import path
 
 from faker import Faker
@@ -20,11 +21,26 @@ def initdb():
     import_my_data()
 
 
+def init_users():
+    env_pass_key = 'API_PASSWORD'
+    password = os.environ.get(env_pass_key)
+    if password is None:
+        raise ValueError(f'"{env_pass_key}" environment variable for default password is empty.')
+
+    db.session.add(User(username='hossain', password=password, gender='male', education='Masters', occupation='',
+                        affiliation='TU/e', years_xp=0))
+    db.session.add(User(username='david', password=password, gender='male', education='Masters', occupation='',
+                        affiliation='TU/e', years_xp=0))
+    db.session.add(User(username='raghav', password=password, gender='male', education='Masters', occupation='',
+                        affiliation='TiU', years_xp=0))
+    db.session.add(User(username='admin', password=password, gender='male', education='Masters', occupation='',
+                        affiliation='TU/e', years_xp=0))
+    db.session.commit()
+
+
 def initialize_database():
     print("Initializing tables with basic data ...", end='')
-    # if User.query.count() == 0:
-    #     db.session.add(User(username='ADMIN', gender='', education='', occupation='', affiliation='', years_xp=-1))
-    # db.session.commit()
+    init_users()
     print("\t[SUCCESS]")
 
 

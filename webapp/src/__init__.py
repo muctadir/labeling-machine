@@ -9,7 +9,7 @@ app.template_folder = os.path.abspath('./frontend/templates')
 app.static_folder = os.path.abspath('./frontend/static')
 app.secret_key = "DOC_PATTERN_LABELING_KEY"
 
-## SQLite Database
+# SQLite Database
 db_path = os.path.join(os.path.dirname(__file__), '../db/app.sqlite')
 Path(db_path).parent.mkdir(parents=True, exist_ok=True)
 db_uri = 'sqlite:///{}'.format(db_path)  # sqlite:////absolute/path/to/foo.db
@@ -17,6 +17,9 @@ app.config['SQLALCHEMY_DATABASE_URI'] = db_uri
 app.config['SQLALCHEMY_ECHO'] = False  # Set this configuration to True if you want to see all of the SQL generated.
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False  # To suppress this warning
 db = SQLAlchemy(app)
+
+# Form Authentication
+
 
 
 # Why imported at very end?
