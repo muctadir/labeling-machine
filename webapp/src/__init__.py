@@ -2,6 +2,7 @@ import os
 from pathlib import Path
 
 from flask import Flask
+from flask_login import LoginManager
 from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
@@ -19,7 +20,16 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False  # To suppress this warning
 db = SQLAlchemy(app)
 
 # Form Authentication
+login_manager = LoginManager()
+login_manager.login_view = 'index'
+login_manager.init_app(app)
 
+
+@login_manager.user_loader
+def load_user(username):
+    from src.database.models import User
+    # since the user_id is just the primary key of our user table, use it in the query for the user
+    return User.query.get(username)
 
 
 # Why imported at very end?

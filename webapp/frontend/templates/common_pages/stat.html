@@ -83,11 +83,5 @@
             document.getElementById("source-pb-{{ source_id }}-review").innerHTML = reviewingProgressPercentage + '%';
         {% endfor %}
 
-        document.getElementById('navbar-stat').classList.add('active');
-        document.getElementById('navbar-stat').setAttribute('href', '#');
-        {% if not session['username'] %}
-            document.getElementById('navbar-labeling').remove();
-            document.getElementById('navbar-reviewing').remove();
-        {%  endif %}
     </script>
 {% endblock %}

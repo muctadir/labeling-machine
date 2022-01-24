@@ -27,38 +27,42 @@
 
     <div class="collapse navbar-collapse" id="navbarCollapseData">
 
-        <ul class="navbar-nav mr-auto">
-            <li class="nav-item">
-                <a class="nav-link" id="navbar-home" href="/">Home</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" id="navbar-stat" href="/stat">Stats</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" id="navbar-labeling" href="/labeling">Label</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" id="navbar-reviewing" href="/artifacts_with_conflicting_labels">Review Conflict</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" id="navbar-labeled" href="/labels">Already Labeled</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" id="navbar-labeled" href="/manual_label">Manual Label</a>
-            </li>
+        {% if current_user.is_authenticated %}
 
-            {#            <li class="nav-item dropdown">#}
-            {#                <a class="nav-link dropdown-toggle" href="#" id="navbar-doc" data-toggle="dropdown"#}
-            {#                   aria-haspopup="true" aria-expanded="false">#}
-            {#                    Doc#}
-            {#                </a>#}
-            {#                <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">#}
-            {#                    <!--<a class="dropdown-item" target="_blank" href="https://docs.google.com/spreadsheets/d/1MjFEn-SZM7fXzIrCThwAp9L8otDitI_iHV_csPht0Zc/edit?usp=sharing">Tags</a>-->#}
-            {#                    <a class="dropdown-item" target="_blank" href="/faq">FAQ</a>#}
-            {#                </div>#}
-            {#            </li>#}
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item">
+                    <a class="nav-link" id="navbar-home" href="/">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="navbar-stat" href="/stat">Stats</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="navbar-labeling" href="/labeling">Label</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="navbar-reviewing" href="/artifacts_with_conflicting_labels">Review
+                        Conflict</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="navbar-labeled" href="/labels">Already Labeled</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="navbar-manual-label" href="/manual_label">Manual Label</a>
+                </li>
 
-        </ul>
+                {#            <li class="nav-item dropdown">#}
+                {#                <a class="nav-link dropdown-toggle" href="#" id="navbar-doc" data-toggle="dropdown"#}
+                {#                   aria-haspopup="true" aria-expanded="false">#}
+                {#                    Doc#}
+                {#                </a>#}
+                {#                <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">#}
+                {#                    <!--<a class="dropdown-item" target="_blank" href="https://docs.google.com/spreadsheets/d/1MjFEn-SZM7fXzIrCThwAp9L8otDitI_iHV_csPht0Zc/edit?usp=sharing">Tags</a>-->#}
+                {#                    <a class="dropdown-item" target="_blank" href="/faq">FAQ</a>#}
+                {#                </div>#}
+                {#            </li>#}
+
+            </ul>
+        {% endif %}
 
         {% if user_info %}
             <ul class="navbar-nav" style="right: 0">
@@ -72,7 +76,7 @@
                 </li>
 
                 <li class="nav-item">
-                    <a class="nav-link" href="/signout">Log Out ({{ session["username"] }})</a>
+                    <a class="nav-link" href="/signout">Log Out ({{ current_user.username }})</a>
                 </li>
             </ul>
         {% endif %}

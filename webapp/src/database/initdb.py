@@ -2,6 +2,7 @@ import os
 from os import path
 
 from faker import Faker
+from werkzeug.security import generate_password_hash
 
 from src import app
 from src.database.models import *
@@ -27,6 +28,7 @@ def init_users():
     if password is None:
         raise ValueError(f'"{env_pass_key}" environment variable for default password is empty.')
 
+    password = generate_password_hash(password, method='sha256')
     db.session.add(User(username='hossain', password=password, gender='male', education='Masters', occupation='',
                         affiliation='TU/e', years_xp=0))
     db.session.add(User(username='david', password=password, gender='male', education='Masters', occupation='',

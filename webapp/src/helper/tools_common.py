@@ -1,8 +1,8 @@
-from flask import session
+from flask_login import login_user, logout_user, current_user
 from sqlalchemy import func, distinct
 
 from src import db
-from src.database.models import User, FlaggedArtifact
+from src.database.models import FlaggedArtifact
 
 
 def string_none_or_empty(string: str):
@@ -10,32 +10,20 @@ def string_none_or_empty(string: str):
     return not string.strip()
 
 
-def sign_in(username):
-    session['username'] = username
+def sign_in(user):
+    login_user(user, force=True)
 
 
 def sign_out():
-    session.pop('username', None)
+    logout_user()
 
 
 def is_signed_in():
-    if 'username' not in session:
-        return False
-    else:
-        session_username = session['username']
-        db_user = User.query.filter_by(username=session_username).first()
-        if db_user is None:
-            sign_out()
-            return False
-        else:
-            return True
+    return current_user.is_authenticated
 
 
 def who_is_signed_in():
-    if 'username' in session:
-        return session['username']
-    else:
-        return None
+    return current_user.username if current_user.is_authenticated else None
 
 
 def get_all_users():

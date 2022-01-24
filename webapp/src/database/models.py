@@ -1,3 +1,4 @@
+from flask_login import UserMixin
 from sqlalchemy.orm import validates, relationship
 from sqlalchemy.sql import func
 
@@ -11,7 +12,7 @@ class __TrackedModel(db.Model):
     created_by = db.Column(db.Text, nullable=True)
 
 
-class User(db.Model):
+class User(UserMixin, db.Model):
     """
     Registered Users
     """
@@ -28,6 +29,9 @@ class User(db.Model):
     @validates('username', 'gender', 'education', 'occupation')
     def convert_lower(self, key, value):
         return value.title()
+
+    def get_id(self):
+        return self.username
 
 
 class Note(__TrackedModel):

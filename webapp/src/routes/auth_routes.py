@@ -1,23 +1,25 @@
 from flask import render_template, request, redirect, url_for, session
+from sqlalchemy import select
+from werkzeug.security import generate_password_hash, check_password_hash
 
 from src import app, db
 from src.database.models import User
-from src.helper.tools_common import sign_in, sign_out
+from src.helper.tools_common import sign_in, sign_out, string_none_or_empty
 
 
 @app.route("/signin", methods=['GET', 'POST'])
 def signin():
     if request.method == 'POST':
+        if string_none_or_empty(request.form['user']) or string_none_or_empty(request.form['password']):
+            return redirect(url_for('index'))
+
         username = request.form['user'].title()
-        if username == "":
-            return redirect(url_for('index'))
-        user = User.query.filter_by(username=username).first()
-        if user is not None:
-            sign_in(username)
-            return redirect(url_for('index'))
-        else:
-            session['new_user_username'] = username  # Pass username to register page
-            return redirect(url_for('signup'))
+        password = request.form['password']
+        user = db.session.execute(select(User).where(User.username == username)).scalar()
+        if user is not None and check_password_hash(user.password, password):
+            sign_in(user)
+
+        return redirect(url_for('index'))
     else:
         return "Not POST!"
 
