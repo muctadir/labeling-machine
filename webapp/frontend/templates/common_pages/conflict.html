@@ -25,9 +25,54 @@
                         <td>
                             {% for label in data['labels'] %}
                                 <div class="card" style="text-align: left">
-                                    <div>Label: [#{{ label['id'] }}] {{ label['label'] }}</div>
-                                    <div>Labeled by: {{ label['creator'] }}</div>
-                                    <div>Remark: {{ label['remark'] }}</div>
+                                    <form>
+                                        <div class="form-group-sm row">
+                                            <label class="col-sm-3 col-form-label-sm">Label</label>
+                                            <div class="col-sm-9">
+                                                <select id="labelSelect{{ data['id'] }}" class="form-control-sm">
+                                                    <option selected>Choose...</option>
+                                                    <option>...</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="form-group-sm row">
+                                            <label class="col-sm-3 col-form-label-sm">Remark</label>
+                                            <div class="col-sm-9">
+                                                <textarea type="text"
+                                                          class="form-control"
+                                                          cols="1">{{ label['remark'] or '' }}</textarea>
+                                            </div>
+                                        </div>
+                                        <div class="form-group-sm row">
+                                            <label class="col-sm-3 col-form-label-sm">Labeler</label>
+                                            <div class="col-sm-9">
+                                                <input type="text" readonly
+                                                       class="form-control-plaintext form-control-sm"
+                                                       class="form-control" value="{{ label['creator'] }}">
+                                                <button type="submit" class="btn-sm btn-primary mb-2">Save</button>
+                                            </div>
+                                        </div>
+
+                                        {#                                        <div class="form-row">#}
+                                        {#                                            <div class="col-md-5 mb-4">#}
+                                        {#                                                <label for="validationDefault01">Label:</label>#}
+                                        {#                                                <label for="validationDefault01">{{ label['label'] }}</label>#}
+                                        {#                                            </div>#}
+                                        {#                                        </div>#}
+                                        {#                                        <div class="form-row">#}
+                                        {#                                            <div class="col-md-5 mb-4">#}
+                                        {#                                                <label for="validationDefault01">Remark:</label>#}
+                                        {#                                                <label for="validationDefault01">{{ label['remark'] }}</label>#}
+                                        {#                                            </div>#}
+                                        {#                                        </div>#}
+                                    </form>
+
+
+                                    {#                                    <div>Current Label: {{ label['label'] }}</div>#}
+                                    {#                                    #}
+                                    {#                                    #}
+                                    {#                                    <div>Labeled by: {{ label['creator'] }}</div>#}
+                                    {#                                    <div>Remark: {{ label['remark'] }}</div>#}
                                 </div>
                             {% endfor %}
                         </td>
