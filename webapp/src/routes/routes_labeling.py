@@ -1,4 +1,5 @@
 from flask import render_template, request, redirect, url_for, jsonify
+from flask_login import login_required
 from sqlalchemy import select
 
 from src import app
@@ -7,59 +8,56 @@ from src.database.queries.artifact_queries import lock_artifact_by, add_artifact
 from src.database.queries.label_queries import delete_label, update_artifact_label, \
     label_artifact
 from src.helper.consts import *
-from src.helper.tools_common import is_signed_in, string_none_or_empty
+from src.helper.tools_common import string_none_or_empty
 from src.helper.tools_labeling import *
 
 
 @app.route("/labeling", methods=['GET', 'POST'])
+@login_required
 def labeling():
     if request.method != 'POST':
-        if is_signed_in():
-            # This is not fully correct! because maybe tagger A label N needed artifacts,
-            # but since #tagged_by_two is less than two, app still propose artifacts to guy A
-            n_api_tagged_by_two_or_more = get_n_artifacts_labeled_by_n_or_more(2)
-            if n_api_tagged_by_two_or_more >= total_artifact_count():
-                return "We are done. All {} APIs are tagged by 2+ taggers.".format(total_artifact_count())
-            else:
-                selected_artifact_id = choose_next_random_api()
-                if selected_artifact_id < 0:
-                    return "It seems you are done. Please Wait for others [Code: {}]".format(selected_artifact_id)
-                return redirect(url_for('labeling_with_artifact', target_artifact_id=selected_artifact_id))
+        # This is not fully correct! because maybe tagger A label N needed artifacts,
+        # but since #tagged_by_two is less than two, app still propose artifacts to guy A
+        n_api_tagged_by_two_or_more = get_n_artifacts_labeled_by_n_or_more(2)
+        if n_api_tagged_by_two_or_more >= total_artifact_count():
+            return "We are done. All {} APIs are tagged by 2+ taggers.".format(total_artifact_count())
         else:
-            return "Please Sign-in first."
+            selected_artifact_id = choose_next_random_api()
+            if selected_artifact_id < 0:
+                return "It seems you are done. Please Wait for others [Code: {}]".format(selected_artifact_id)
+            return redirect(url_for('labeling_with_artifact', target_artifact_id=selected_artifact_id))
     else:
         return "Why POST?"
 
 
 @app.route("/labeling/<target_artifact_id>", methods=['GET', 'POST'])
+@login_required
 def labeling_with_artifact(target_artifact_id):
     if not IS_SYSTEM_UP:
         return SYSTEM_STATUS_MESSAGE
 
     if request.method != 'POST':
-        if is_signed_in():
-            target_artifact_id = int(target_artifact_id)
+        target_artifact_id = int(target_artifact_id)
 
-            artifact_data = Artifact.query.filter_by(id=target_artifact_id).first()
-            all_labels = db.session.execute(select(LabelingData.id, LabelingData.labeling)).all()
-            all_taggers = [a for a, in db.session.execute(select(ArtifactLabelRelation.created_by).where(
-                ArtifactLabelRelation.artifact_id == target_artifact_id)).all()]
-            lock_artifact_by(who_is_signed_in(), target_artifact_id)
+        artifact_data = Artifact.query.filter_by(id=target_artifact_id).first()
+        all_labels = db.session.execute(select(LabelingData.id, LabelingData.labeling)).all()
+        all_taggers = [a for a, in db.session.execute(select(ArtifactLabelRelation.created_by).where(
+            ArtifactLabelRelation.artifact_id == target_artifact_id)).all()]
+        lock_artifact_by(who_is_signed_in(), target_artifact_id)
 
-            return render_template('labeling_pages/artifact.html',
-                                   artifact_id=target_artifact_id,
-                                   artifact_data=artifact_data,
-                                   overall_labeling_status=get_overall_labeling_progress(),
-                                   user_info=get_labeling_status(who_is_signed_in()),
-                                   existing_labeling_data=all_labels,
-                                   all_taggers=', '.join(all_taggers) if all_taggers is not None else None)
-        else:
-            return "Please Sign-in first."
+        return render_template('labeling_pages/artifact.html',
+                               artifact_id=target_artifact_id,
+                               artifact_data=artifact_data,
+                               overall_labeling_status=get_overall_labeling_progress(),
+                               user_info=get_labeling_status(who_is_signed_in()),
+                               existing_labeling_data=all_labels,
+                               all_taggers=', '.join(all_taggers) if all_taggers is not None else None)
     else:
         return "Why POST?"
 
 
 @app.route("/note", methods=['GET', 'POST'])
+@login_required
 def note():
     if CURRENT_TASK['level'] != 0:  # We are not at Labeling phase anymore.
         return jsonify('{{ "error": "We are not labeling. Labeling data is in read-only mode." }}')
@@ -99,6 +97,7 @@ def note():
 
 
 @app.route("/flag_artifact", methods=['GET', 'POST'])
+@login_required
 def toggle_fp():
     if CURRENT_TASK['level'] != 0:  # We are not at Labeling phase anymore.
         return jsonify('{{ "error": "We are not labeling. Labeling data is in read-only mode." }}')
@@ -139,6 +138,7 @@ def toggle_fp():
 
 
 @app.route("/label", methods=['POST'])
+@login_required
 def label():
     if CURRENT_TASK['level'] != 0:  # We are not at Labeling phase anymore.
         return jsonify('{ "error": "We are not labeling. Labeling data is in read-only mode." }'), 400
@@ -164,6 +164,7 @@ def label():
 
 
 @app.route('/update_label_for_artifact/<artifact_id>/<label_id>/<updated_label>', methods=['PUT'])
+@login_required
 def update_label_for_artifact(artifact_id, label_id, updated_label):
     if request.method != 'PUT':
         return "Not PUT!", 400
@@ -182,6 +183,7 @@ def update_label_for_artifact(artifact_id, label_id, updated_label):
 
 
 @app.route('/remove_label/<label_id>', methods=['DELETE'])
+@login_required
 def remove_label(label_id):
     if request.method != 'DELETE':
         return "Not DELETE!", 400
@@ -198,6 +200,7 @@ def remove_label(label_id):
 
 
 @app.route('/manual_label', methods=['GET', 'POST'])
+@login_required
 def manual_label():
     if request.method == 'GET':
         all_labels = db.session.execute(select(LabelingData.id, LabelingData.labeling)).all()

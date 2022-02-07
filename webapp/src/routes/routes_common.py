@@ -1,4 +1,5 @@
 from flask import render_template, request, redirect, url_for, session, jsonify
+from flask_login import login_required
 from sqlalchemy import select, distinct
 from sqlalchemy.sql.functions import count
 
@@ -23,6 +24,7 @@ def index():
 
 
 @app.route("/stat", methods=['GET'])
+@login_required
 def stat():
     n_labeled_per_user = get_n_labeled_artifact_per_user()
 
@@ -46,6 +48,7 @@ def stat():
 
 
 @app.route("/setstatus", methods=['GET', 'POST'])
+@login_required
 def setstatus():
     if is_signed_in():
         global IS_SYSTEM_UP
@@ -60,12 +63,14 @@ def setstatus():
 
 
 @app.route("/labels", methods=['GET'])
+@login_required
 def labels():
     all_labels = LabelingData.query.with_entities(LabelingData.labeling, LabelingData.id).all()
     return render_template('common_pages/labels.html', all_labels=all_labels)
 
 
 @app.route("/artifacts/<label_id>", methods=['GET'])
+@login_required
 def artifacts_by_label(label_id):
     artifacts = [dict(id=aid, text=text, creator=creator, remark=remark)
                  for aid, text, creator, remark in db.session.execute(
@@ -75,6 +80,7 @@ def artifacts_by_label(label_id):
 
 
 @app.route('/artifacts_with_conflicting_labels', methods=['GET'])
+@login_required
 def artifacts_with_conflicting_labels():
     conflict_art = db.session.execute(select(Artifact.id, Artifact.text).join(
         ArtifactLabelRelation.label).join(ArtifactLabelRelation.artifact).group_by(
