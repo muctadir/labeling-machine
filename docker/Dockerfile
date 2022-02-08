@@ -1,4 +1,4 @@
-FROM python:3.6.5-slim
+FROM python:3.9-slim
 
 RUN apt-get update
 RUN apt-get install nano
