@@ -1,0 +1,21 @@
+version: '3.1'
+
+services:
+  lm:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+      args:
+        API_PASSWORD: ${API_PASSWORD}
+        FLASK_ENV: ${FLASK_ENV}
+    image: lm-minimal:latest
+    container_name: lm-minimal
+    restart: always
+    env_file:
+      - .env
+    volumes:
+      - labeling-data:/labeling-machine/webapp/db
+    ports:
+      - '5000:5000'
+volumes:
+  labeling-data:

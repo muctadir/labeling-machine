@@ -14,7 +14,7 @@ from src.helper.tools_common import string_none_or_empty
 
 @app.cli.command('initdb')
 def initdb():
-    print("Creating non-existing tables ...", end='')
+    print("Creating non-existing tables ... ", end='')
     db.create_all(app=app)  # SQLAlchemy: creates tables defined in `models.py` (only if do not exist)
     print("\t[SUCCESS]")
 
@@ -25,7 +25,8 @@ def initdb():
 def init_users():
     env_pass_key = 'API_PASSWORD'
     password = os.environ.get(env_pass_key)
-    if password is None:
+
+    if string_none_or_empty(password):
         raise ValueError(f'"{env_pass_key}" environment variable for default password is empty.')
 
     password = generate_password_hash(password, method='sha256')
