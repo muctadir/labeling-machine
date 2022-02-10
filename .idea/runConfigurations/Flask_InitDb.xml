@@ -6,7 +6,6 @@
     <envs>
       <env name="PYTHONUNBUFFERED" value="1" />
       <env name="FLASK_APP" value="src" />
-      <env name="FLASK_ENV" value="development" />
       <env name="API_PASSWORD" value="12345" />
     </envs>
     <option name="SDK_HOME" value="" />

@@ -10,3 +10,4 @@ Werkzeug==1.0.1
 html2text==2020.1.16
 Faker==8.*
 Flask-Login==0.5.*
+sqlalchemy-utils==0.38.*
