@@ -1,21 +1,20 @@
-from flask import render_template, request, redirect, url_for, session, jsonify
-from flask_login import login_required
+from flask import render_template, request, jsonify, redirect, flash
+from flask_login import login_required, current_user
 from sqlalchemy import select, distinct
 from sqlalchemy.sql.functions import count
 
 from src import app, db
-from src.database.models import User, LabelingData, Artifact, ArtifactLabelRelation
-from src.database.queries.artifact_queries import unlock_artifacts_by
+from src.database.models import LabelingData, Artifact, ArtifactLabelRelation
+from src.database.queries.artifact_queries import unlock_artifacts_by, add_artifacts
 from src.helper.consts import CURRENT_TASK
-from src.helper.tools_common import is_signed_in, who_is_signed_in, sign_in, sign_out, \
-    get_all_users
+from src.helper.tools_common import who_is_signed_in, get_all_users, read_artifacts_from_file
 from src.helper.tools_labeling import get_labeling_status, get_n_labeled_artifact_per_user, \
     get_overall_labeling_progress
 
 
 @app.route("/")
 def index():
-    if is_signed_in():
+    if current_user.is_authenticated:
         unlock_artifacts_by(who_is_signed_in())
         return render_template("common_pages/home.html", user_info=get_labeling_status(who_is_signed_in()),
                                currentTask=CURRENT_TASK['route'])
@@ -50,16 +49,13 @@ def stat():
 @app.route("/setstatus", methods=['GET', 'POST'])
 @login_required
 def setstatus():
-    if is_signed_in():
-        global IS_SYSTEM_UP
-        newStatus = request.args.get('status')
-        if newStatus == '1':
-            IS_SYSTEM_UP = True
-        else:
-            IS_SYSTEM_UP = False
-        return "New Web App status: " + str(IS_SYSTEM_UP)
+    global IS_SYSTEM_UP
+    newStatus = request.args.get('status')
+    if newStatus == '1':
+        IS_SYSTEM_UP = True
     else:
-        return "Please Sign-in first."
+        IS_SYSTEM_UP = False
+    return "New Web App status: " + str(IS_SYSTEM_UP)
 
 
 @app.route("/labels", methods=['GET'])
@@ -101,3 +97,26 @@ def artifacts_with_conflicting_labels():
                                dict(id=aid, text=atxt, labels=[dict(id=lid, label=lbl, creator=creator, remark=remark)
                                                                for lid, lbl, creator, remark in art_lbl[aid]])
                                for aid, atxt in conflict_art])
+
+
+@app.route('/upload_artifact', methods=['GET', 'POST'])
+@login_required
+def upload_artifact():
+    if request.method == 'GET':
+        return render_template('common_pages/upload_artifact.html')
+    elif request.method == 'POST':
+        if 'file' not in request.files:
+            flash('No file selected', category='error')
+            return redirect(request.url)
+
+        file = request.files['file']
+        # If the user does not select a file, the browser submits an
+        # empty file without a filename.
+        if file is None or file.filename == '':
+            flash('No file selected', category='error')
+            return redirect(request.url)
+
+        artifacts = read_artifacts_from_file(file)
+        add_artifacts(artifacts, who_is_signed_in())
+        flash(f'Added {len(artifacts)} artifacts', category='success')
+        return redirect(request.url)

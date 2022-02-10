@@ -1,11 +1,11 @@
 from datetime import datetime
 from typing import List
 
-from sqlalchemy import insert, func, select
+from sqlalchemy import insert, func, select, distinct
 
 from src import db
-from src.database.models import Artifact, LockedArtifact, ArtifactLabelRelation
-from src.helper.tools_common import string_none_or_empty
+from src.database.models import Artifact, LockedArtifact, ArtifactLabelRelation, FlaggedArtifact
+from src.helper.tools_common import string_none_or_empty, who_is_signed_in
 
 
 def add_artifacts(artifact_txt_list: List[str], creator: str) -> List[int]:
@@ -62,3 +62,15 @@ def artifact_needs_labeling_count() -> int:
         select(ArtifactLabelRelation.artifact_id).group_by(ArtifactLabelRelation.artifact_id).having(
             func.count(ArtifactLabelRelation.created_by) > 1))
     return len(db.session.execute(query).all())
+
+
+def get_false_positive_artifacts():
+    """
+    Return artifacts marked as false positive by me, or marked as false positive by at least 2 people
+    """
+    q_artifacts_marked_fp_by_me = db.session.query(distinct(FlaggedArtifact.artifact_id)).filter(
+        FlaggedArtifact.created_by == who_is_signed_in())
+    q_artifacts_marked_fp_by_2 = db.session.query(
+        distinct(FlaggedArtifact.artifact_id)).group_by(FlaggedArtifact.artifact_id).having(func.count() > 1)
+    result = {row[0] for row in q_artifacts_marked_fp_by_me.union(q_artifacts_marked_fp_by_2).all()}
+    return result

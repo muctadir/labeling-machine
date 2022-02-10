@@ -1,10 +1,11 @@
 from flask import request, redirect, url_for
+from flask_login import login_user, logout_user
 from sqlalchemy import select
 from werkzeug.security import check_password_hash
 
 from src import app, db
 from src.database.models import User
-from src.helper.tools_common import sign_in, sign_out, string_none_or_empty
+from src.helper.tools_common import string_none_or_empty
 
 
 @app.route("/signin", methods=['GET', 'POST'])
@@ -17,7 +18,7 @@ def signin():
         password = request.form['password']
         user = db.session.execute(select(User).where(User.username == username)).scalar()
         if user is not None and check_password_hash(user.password, password):
-            sign_in(user)
+            login_user(user, force=True)
 
         return redirect(url_for('index'))
     else:
@@ -53,7 +54,7 @@ def signin():
 @app.route("/signout", methods=['GET', 'POST'])
 def signout():
     if request.method == 'GET':
-        sign_out()
+        logout_user()
         return redirect(url_for('index'))
     else:
         return "Not GET!"

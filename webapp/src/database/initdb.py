@@ -9,7 +9,7 @@ from src.database.models import *
 # Registers 'initdb' cli command.
 # Usage: `flask initdb`
 from src.database.queries.artifact_queries import add_artifacts
-from src.helper.tools_common import string_none_or_empty
+from src.helper.tools_common import string_none_or_empty, read_artifacts_from_file
 
 
 @app.cli.command('initdb')
@@ -57,9 +57,7 @@ def import_my_data():
     text = []
     if path.exists(sample_file):
         with open(sample_file) as f:
-            for line in f:
-                if not string_none_or_empty(line):
-                    text.append(line.strip())
+            read_artifacts_from_file(f)
     else:
         print(f'No file at {sample_file}. Uploading random value with Faker.', end='')
         fake = Faker()

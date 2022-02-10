@@ -49,6 +49,9 @@
                 <li class="nav-item">
                     <a class="nav-link" id="navbar-manual-label" href="/manual_label">Manual Label</a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="navbar-manual-label" href="/upload_artifact">Upload Artifact</a>
+                </li>
 
                 {#            <li class="nav-item dropdown">#}
                 {#                <a class="nav-link dropdown-toggle" href="#" id="navbar-doc" data-toggle="dropdown"#}
@@ -64,8 +67,8 @@
             </ul>
         {% endif %}
 
-        {% if user_info %}
-            <ul class="navbar-nav" style="right: 0">
+        <ul class="navbar-nav" style="right: 0">
+            {% if user_info %}
                 <li class="navbar-text badges" style="color: white;">
                     <span class="badge1" title="Number of artifacts labeled by you"></span>
                     <span>{{ user_info['total_n_api'] }}</span>
@@ -74,12 +77,13 @@
                     <span class="badge3" title="Number of artifacts reviewed by you"></span>
                     <span>{{ user_info['total_n_reviewed'] }}</span>
                 </li>
-
+            {% endif %}
+            {% if current_user.is_authenticated %}
                 <li class="nav-item">
                     <a class="nav-link" href="/signout">Log Out ({{ current_user.username }})</a>
                 </li>
-            </ul>
-        {% endif %}
+            {% endif %}
+        </ul>
 
     </div>
 </nav>
