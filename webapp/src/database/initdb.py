@@ -20,13 +20,13 @@ def initdb():
         db.create_all(app=app)  # SQLAlchemy: creates tables defined in `models.py` (only if do not exist)
         print("\t[SUCCESS]")
         initialize_database()
-        import_dummy_data()
     else:
         # TODO: run db migrations
         print("DB already exists. [SKIP]")
 
 
 def init_users():
+    print("Initializing default users. ", end='')
     env_pass_key = 'API_PASSWORD'
     password = os.environ.get(env_pass_key)
 
@@ -43,12 +43,12 @@ def init_users():
     db.session.add(User(username='admin', password=password, gender='male', education='Masters', occupation='',
                         affiliation='TU/e', years_xp=0))
     db.session.commit()
+    print("\t[SUCCESS]")
 
 
 def initialize_database():
-    print("Initializing default users. ", end='')
     init_users()
-    print("\t[SUCCESS]")
+    import_dummy_data()
 
 
 def import_dummy_data():
