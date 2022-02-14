@@ -70,6 +70,7 @@ def label_artifact(artifact_id: int, labeling_data: str, remark: str, duration_s
     if labeled_artifact is not None:
         labeled_artifact.label = lbl
         labeled_artifact.duration_sec = duration_sec
+        labeled_artifact.label_update_count = labeled_artifact.label_update_count + 1
         labeled_artifact.remark = remark
         status = 'updated'
     else:

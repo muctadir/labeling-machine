@@ -64,6 +64,7 @@ class ArtifactLabelRelation(__TrackedModel):
     artifact = relationship('Artifact', back_populates='labels_relation')
     label = relationship('LabelingData', back_populates='artifacts_relation')
     duration_sec = db.Column(db.Integer)
+    label_update_count = db.Column(db.Integer, default=1, nullable=False)
 
 
 class Artifact(__TrackedModel):
