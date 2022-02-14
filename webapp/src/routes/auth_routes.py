@@ -1,4 +1,4 @@
-from flask import request, redirect, url_for
+from flask import request, redirect, url_for, flash
 from flask_login import login_user, logout_user
 from sqlalchemy import select
 from werkzeug.security import check_password_hash
@@ -14,11 +14,13 @@ def signin():
         if string_none_or_empty(request.form['user']) or string_none_or_empty(request.form['password']):
             return redirect(url_for('index'))
 
-        username = request.form['user'].title()
+        username = request.form['user'].strip()
         password = request.form['password']
         user = db.session.execute(select(User).where(User.username == username)).scalar()
         if user is not None and check_password_hash(user.password, password):
             login_user(user, force=True)
+        else:
+            flash('Authentication failed!!!', category='error')
 
         return redirect(url_for('index'))
     else:

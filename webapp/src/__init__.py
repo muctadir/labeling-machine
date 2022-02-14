@@ -40,4 +40,4 @@ def load_user(username):
 # the bottom avoids the error that results from the mutual references between these two files.
 
 from src import routes
-from src.database import models, initdb
+from src.database import models
