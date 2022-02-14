@@ -3,6 +3,7 @@ from pathlib import Path
 
 from flask import Flask
 from flask_login import LoginManager
+from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
@@ -18,6 +19,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = db_uri
 app.config['SQLALCHEMY_ECHO'] = False  # Set this configuration to True if you want to see all of the SQL generated.
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False  # To suppress this warning
 db = SQLAlchemy(app)
+migrate = Migrate(app, db)
 
 # Form Authentication
 login_manager = LoginManager()

@@ -11,3 +11,4 @@ html2text==2020.1.16
 Faker==8.*
 Flask-Login==0.5.*
 sqlalchemy-utils==0.38.*
+Flask-Migrate==3.1.*
