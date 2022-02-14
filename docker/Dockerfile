@@ -21,7 +21,7 @@ RUN pip3 install --upgrade pip
 RUN pip3 install --trusted-host pypi.python.org -r /labeling-machine/requirements.txt
 
 WORKDIR /labeling-machine/webapp
-RUN flask initdb
+RUN flask db upgrade
 
 # Make port 5000 available to the world outside this container
 EXPOSE 5000
