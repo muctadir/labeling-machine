@@ -17,7 +17,7 @@
 
     <div class="lower-panel fixed-bottom ">
         <form class="form-inline" style="justify-content: center;" id="form1">
-            <div class="form-group mx-sm-3 mb-2">
+            <div class="form-group mx-sm-3 mb-auto">
                 <select class="js-example-basic-single" name="labeling_data" id="label_selector" style="width: 400px">
                     <option value='' selected="selected"></option>
                     {% for key, item in existing_labeling_data %}
@@ -25,6 +25,10 @@
                     {% endfor %}
                 </select>
             </div>
+
+            <input type="text" id="label_description" class="form-control mx-sm-3 mb-auto"
+                   placeholder="Label Description"
+                   style="width: 60em;">
 
             <input type="text" id="remark" class="form-control mx-sm-3 mb-auto" placeholder="Remark"
                    style="width: 60em;">
@@ -53,10 +57,14 @@
             );
 
             $(document.body).on("change", "#label_selector", function () {
-                if (this.value == "")
+                if (this.value == "") {
                     $("#submit_btn").attr('disabled', "");
-                else
+                } else {
                     $("#submit_btn").removeAttr('disabled');
+                    $.get('/get_label_description/' + $('#label_selector').val(), function (data) {
+                        $('#label_description').val(data);
+                    });
+                }
             });
 
             $("#submit_btn").click(on_submit);

@@ -155,8 +155,9 @@ def label():
         labeling_data = request.form['labeling_data'].strip()
         remark = request.form['remark'].strip() if not string_none_or_empty(request.form['remark']) else None
         artifact_id = int(request.form['artifact_id'])
+        label_description = (request.form['label_description'] or '').strip()
 
-        status = label_artifact(artifact_id, labeling_data, remark, duration_sec, who_is_signed_in())
+        status = label_artifact(artifact_id, labeling_data, label_description, remark, duration_sec, who_is_signed_in())
         return jsonify(f'{{ "status": "{status}" }}')
 
     else:
@@ -165,6 +166,7 @@ def label():
 
 @app.route('/update_label_for_artifact/<artifact_id>/<label_id>/<updated_label>', methods=['PUT'])
 @login_required
+# todo: add description to a newly added label
 def update_label_for_artifact(artifact_id, label_id, updated_label):
     if request.method != 'PUT':
         return "Not PUT!", 400
@@ -176,7 +178,7 @@ def update_label_for_artifact(artifact_id, label_id, updated_label):
     artifact_id = int(artifact_id)
     label_id = int(label_id)
     try:
-        update_artifact_label(artifact_id, label_id, updated_label, who_is_signed_in())
+        update_artifact_label(artifact_id, label_id, updated_label, '', who_is_signed_in())
     except ValueError as e:
         return jsonify(f'{{"error": "{e}"}}'), 400
     return jsonify('{"status":"successfully updated artifact with new label"}')
@@ -213,11 +215,21 @@ def manual_label():
             return jsonify('{ "status": "Empty arguments" }'), 400
 
         labeling_data = request.form['labeling_data'].strip()
+        label_description = (request.form['label_description'] or '').strip()
         remark = request.form['remark'].strip() if not string_none_or_empty(request.form['remark']) else None
         duration_sec = int(request.form['duration'])
         artifact_id = add_artifacts([request.form['artifact_txt'].strip()], who_is_signed_in())[0]
-        status = label_artifact(artifact_id, labeling_data, remark, duration_sec, who_is_signed_in())
+        status = label_artifact(artifact_id, labeling_data, label_description, remark, duration_sec, who_is_signed_in())
         return jsonify(f'{{ "status": "{status}" }}')
 
     else:
         return 'invalid', 400
+
+
+@app.route('/get_label_description/<label_data>', methods=['GET'])
+@login_required
+def get_label_description(label_data: str):
+    label_data = (label_data or '').strip()
+    description = db.session.execute(
+        select(LabelingData.label_description).where(LabelingData.labeling == label_data)).scalar()
+    return description

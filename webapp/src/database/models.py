@@ -76,8 +76,8 @@ class Artifact(__TrackedModel):
 class LabelingData(__TrackedModel):
     __tablename__ = 'Label'
     # update the following two lines to store labeled data from users
-    labeling = db.Column(db.Text, nullable=False, unique=True)  # actual data provided by labelers
-    remark = db.Column(db.Text)  # optional data provided by labelers
+    labeling = db.Column(db.Text, nullable=False, unique=True)
+    label_description = db.Column(db.Text)
     artifacts_relation = relationship('ArtifactLabelRelation', back_populates='label')
 
 # class ReviewedParagraph(db.Model):
