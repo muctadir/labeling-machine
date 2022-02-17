@@ -52,7 +52,7 @@ def update_artifact_label(artifact_id: int, old_label_id: int, new_label_txt: st
 def get_or_create_label_with_text(label_txt: str, label_description: str, creator: str):
     lbl = db.session.execute(select(LabelingData).where(
         LabelingData.labeling == label_txt)).scalar() or LabelingData(
-        labeling=label_txt, remark='', created_by=creator, label_description=label_description)
+        labeling=label_txt, created_by=creator, label_description=label_description)
     db.session.add(lbl)
     db.session.flush()
     db.session.commit()
