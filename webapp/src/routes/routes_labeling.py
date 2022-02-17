@@ -232,4 +232,4 @@ def get_label_description(label_data: str):
     label_data = (label_data or '').strip()
     description = db.session.execute(
         select(LabelingData.label_description).where(LabelingData.labeling == label_data)).scalar()
-    return description
+    return description or ''
