@@ -6,7 +6,7 @@ from src import app
 from src.database.models import Note, LabelingData
 from src.database.queries.artifact_queries import lock_artifact_by, add_artifacts
 from src.database.queries.label_queries import delete_label, update_artifact_label, \
-    label_artifact
+    label_artifact, get_label, get_or_create_label_with_text, update_label
 from src.helper.consts import *
 from src.helper.tools_common import string_none_or_empty
 from src.helper.tools_labeling import *
@@ -242,16 +242,26 @@ def label_management_view():
     return render_template('labeling_pages/label_management.html', all_labels=all_labels)
 
 
-@app.route('/label_management/update_label', methods=['PUT'])
+@app.route('/label_management/create_or_update_label', methods=['POST'])
 @login_required
-def update_label():
-    pass
+def create_or_update_label():
+    lid = request.form['id']
+    label_name = request.form['label']
+    description = request.form['description']
+    if string_none_or_empty(label_name) or string_none_or_empty(description):
+        return jsonify({"status": "Empty arguments"}), 400
 
+    lbl = get_label(label_name)
+    try:
+        lbl = get_or_create_label_with_text(label_name, description, who_is_signed_in()) if lbl is None \
+            else update_label(lid, label_name, description)
+        status = 'success'
+    except (ValueError, Exception) as e:
+        status = 'error'
+        msg = str(e)
 
-@app.route('/label_management/create_new_label', methods=['POST'])
-@login_required
-def create_new_label():
-    pass
+    return (jsonify({"status": "saved successfully"}), 200) if status == 'success' \
+               else (jsonify({"status": msg}), 400)
 
 
 @app.route('/label_management/delete_label', methods=['DELETE'])

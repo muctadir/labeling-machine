@@ -2,6 +2,17 @@
 
 
 {% block content %}
+    <br>
+    <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#labelInfoModal"
+            data-bs-whatever="@mdo">Add New
+    </button>
+    <button type="button" class="btn btn-secondary">Merge Labels</button>
+    <div class="clearfix"></div>
+    <!--<div class="btn-group" role="group" aria-label="Basic example">-->
+    <!--    <button type="button" class="btn btn-primary">Left</button>-->
+    <!--    <button type="button" class="btn btn-primary">Middle</button>-->
+    <!--    <button type="button" class="btn btn-primary">Right</button>-->
+    <!--</div>-->
     <table class="table table-hover table-bordered">
         <thead>
         <tr>
@@ -21,7 +32,11 @@
                 <td>{{ lab.artifacts_relation | length }}</td>
                 <td>
                     <div class="btn-group" role="group" aria-label="Basic example">
-                        <button type="button" class="btn btn-warning" onclick="label_edit_click({{ lab.id }})">Edit
+                        <button type="button" class="btn btn-warning" data-bs-toggle="modal"
+                                data-bs-target="#labelInfoModal"
+                                data-bs-id="{{ lab.id }}" data-bs-label="{{ lab.labeling }}"
+                                data-bs-description="{{ lab.label_description }}">
+                            Edit
                         </button>
                         <button type="button" class="btn btn-danger" onclick="label_delete_click({{ lab.id }})">Delete
                         </button>
@@ -32,21 +47,54 @@
         </tbody>
     </table>
 
+    {# label add or update modal#}
+    <div class="modal fade" id="labelInfoModal" tabindex="-1" aria-labelledby="labelInfoModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="labelInfoModalLabel">Label Information</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-info" role="alert" hidden id="messageHolder">
+                    </div>
+                    <form>
+                        <div class="mb-3" hidden>
+                            <label for="labelName" class="col-form-label">id:</label>
+                            <input type="text" class="form-control" id="labelId">
+                        </div>
 
+                        <div class="mb-3">
+                            <label for="labelName" class="col-form-label">Label:</label>
+                            <input type="text" class="form-control" id="labelName">
+                        </div>
+                        <div class="mb-3">
+                            <label for="labelDescription" class="col-form-label">Label Description:</label>
+                            <textarea class="form-control" id="labelDescription"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" id="saveLabel">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {#label delete modal#}
     <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="exampleModalLabel">Modal title</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     ...
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                     <button type="button" class="btn btn-primary">Save changes</button>
                 </div>
             </div>
@@ -57,6 +105,47 @@
 {% block scriptsStuff %}
 
     <script>
+        $(function () {
+            var labelInfoModal = document.getElementById('labelInfoModal');
+            labelInfoModal.addEventListener('show.bs.modal', function (event) {
+                // Hide alert
+                $('#messageHolder').attr('hidden', 'true');
+
+                // Button that triggered the modal
+                var button = event.relatedTarget;
+                // Extract info from data-bs-* attributes
+                var id = button.getAttribute('data-bs-id');
+                var label = button.getAttribute('data-bs-label');
+                var description = button.getAttribute('data-bs-description');
+
+                // Update the modal's content.
+                var modalTitle = labelInfoModal.querySelector('.modal-title');
+                modalTitle.textContent = label ? "Edit Label" : "New Label";
+
+                $('#labelId').val(id);
+                $('#labelName').val(label);
+                $('#labelDescription').val(description);
+            });
+
+            $('#saveLabel').click(function () {
+                let id = $('#labelId').val();
+                let label = $('#labelName').val();
+                let description = $('#labelDescription').val();
+                $.post('/label_management/create_or_update_label',
+                    {'id': id, 'label': label, 'description': description}, function (res) {
+                        $('#messageHolder').text(res.status);
+                        location.reload();
+                    })
+                    .fail(function (res) {
+                        console.log(res);
+                        $('#messageHolder').text(res.responseJSON.status);
+                    })
+                    .always(function () {
+                        $('#messageHolder').removeAttr('hidden');
+                    });
+            });
+
+        });
 
         function label_edit_click(label_id) {
             console.log(`edit ${label_id}`);
@@ -65,7 +154,6 @@
         function label_delete_click(label_id) {
             console.log(`delete ${label_id}`);
         }
-
     </script>
 
 {% endblock %}
