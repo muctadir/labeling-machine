@@ -233,3 +233,41 @@ def get_label_description(label_data: str):
     description = db.session.execute(
         select(LabelingData.label_description).where(LabelingData.labeling == label_data)).scalar()
     return description or ''
+
+
+@app.route('/label_management', methods=['GET'])
+@login_required
+def label_management_view():
+    all_labels = [a for a, in db.session.execute(select(LabelingData)).all()]
+    return render_template('labeling_pages/label_management.html', all_labels=all_labels)
+
+
+@app.route('/label_management/update_label', methods=['PUT'])
+@login_required
+def update_label():
+    pass
+
+
+@app.route('/label_management/create_new_label', methods=['POST'])
+@login_required
+def create_new_label():
+    pass
+
+
+@app.route('/label_management/delete_label', methods=['DELETE'])
+@login_required
+def delete_label():
+    pass
+
+
+@app.route('/label_management/merge_labels', methods=['GET'])
+@login_required
+def merge_labels():
+    pass
+
+
+@app.route("/labels", methods=['GET'])
+@login_required
+def labels():
+    all_labels = LabelingData.query.with_entities(LabelingData.labeling, LabelingData.id).all()
+    return render_template('common_pages/labels.html', all_labels=all_labels)

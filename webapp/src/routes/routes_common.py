@@ -58,13 +58,6 @@ def setstatus():
     return "New Web App status: " + str(IS_SYSTEM_UP)
 
 
-@app.route("/labels", methods=['GET'])
-@login_required
-def labels():
-    all_labels = LabelingData.query.with_entities(LabelingData.labeling, LabelingData.id).all()
-    return render_template('common_pages/labels.html', all_labels=all_labels)
-
-
 @app.route("/artifacts/<label_id>", methods=['GET'])
 @login_required
 def artifacts_by_label(label_id):
