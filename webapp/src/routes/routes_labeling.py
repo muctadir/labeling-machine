@@ -184,23 +184,6 @@ def update_label_for_artifact(artifact_id, label_id, updated_label):
     return jsonify('{"status":"successfully updated artifact with new label"}')
 
 
-@app.route('/remove_label/<label_id>', methods=['DELETE'])
-@login_required
-def remove_label(label_id):
-    if request.method != 'DELETE':
-        return "Not DELETE!", 400
-    if string_none_or_empty(label_id):
-        return "parameter empty", 400
-
-    label_id = int(label_id)
-    try:
-        delete_label(label_id)
-    except ValueError as e:
-        return jsonify(f'{{"error":"{e}"}}'), 400
-
-    return jsonify('{"status":"deleted successfully!"}')
-
-
 @app.route('/manual_label', methods=['GET', 'POST'])
 @login_required
 def manual_label():
@@ -261,13 +244,24 @@ def create_or_update_label():
         msg = str(e)
 
     return (jsonify({"status": "saved successfully"}), 200) if status == 'success' \
-               else (jsonify({"status": msg}), 400)
+        else (jsonify({"status": msg}), 400)
 
 
-@app.route('/label_management/delete_label', methods=['DELETE'])
+@app.route('/label_management/delete_label/<label_id>', methods=['DELETE'])
 @login_required
-def delete_label():
-    pass
+def remove_label_by_id(label_id):
+    if request.method != 'DELETE':
+        return "Not DELETE!", 400
+    if string_none_or_empty(label_id):
+        return "parameter empty", 400
+
+    label_id = int(label_id)
+    try:
+        delete_label(label_id)
+    except ValueError as e:
+        return jsonify({"status": str(e)}), 400
+
+    return jsonify({"status": "deleted successfully!"}), 200
 
 
 @app.route('/label_management/merge_labels', methods=['GET'])

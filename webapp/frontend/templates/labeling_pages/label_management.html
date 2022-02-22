@@ -35,10 +35,11 @@
                         <button type="button" class="btn btn-warning" data-bs-toggle="modal"
                                 data-bs-target="#labelInfoModal"
                                 data-bs-id="{{ lab.id }}" data-bs-label="{{ lab.labeling }}"
-                                data-bs-description="{{ lab.label_description }}">
-                            Edit
+                                data-bs-description="{{ lab.label_description }}">Edit
                         </button>
-                        <button type="button" class="btn btn-danger" onclick="label_delete_click({{ lab.id }})">Delete
+                        <button type="button" class="btn btn-danger" data-bs-toggle="modal"
+                                data-bs-target="#labelDeleteModal" data-bs-id="{{ lab.id }}"
+                                data-bs-label="{{ lab.labeling }}">Delete
                         </button>
                     </div>
                 </td>
@@ -56,7 +57,7 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <div class="alert alert-info" role="alert" hidden id="messageHolder">
+                    <div class="alert alert-info" role="alert" hidden id="labelMessageHolder">
                     </div>
                     <form>
                         <div class="mb-3" hidden>
@@ -83,19 +84,22 @@
     </div>
 
     {#label delete modal#}
-    <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal fade" id="labelDeleteModal" tabindex="-1" aria-labelledby="labelDeleteModalLabel"
+         aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="exampleModalLabel">Modal title</h5>
+                    <h5 class="modal-title" id="labelDeleteModalLabel">Confirm delete label?</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    ...
+                    <div class="alert alert-info" role="alert" hidden id="labelDeleteMessageHolder">
+                    </div>
+                    <div id="deleteDialog"></div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-primary">Save changes</button>
+                    <button type="button" class="btn btn-danger" id="deleteLabel">Delete</button>
                 </div>
             </div>
         </div>
@@ -106,20 +110,20 @@
 
     <script>
         $(function () {
-            var labelInfoModal = document.getElementById('labelInfoModal');
+            let labelInfoModal = document.getElementById('labelInfoModal');
             labelInfoModal.addEventListener('show.bs.modal', function (event) {
                 // Hide alert
-                $('#messageHolder').attr('hidden', 'true');
+                $('#labelMessageHolder').attr('hidden', 'true');
 
                 // Button that triggered the modal
-                var button = event.relatedTarget;
+                let button = event.relatedTarget;
                 // Extract info from data-bs-* attributes
-                var id = button.getAttribute('data-bs-id');
-                var label = button.getAttribute('data-bs-label');
-                var description = button.getAttribute('data-bs-description');
+                let id = button.getAttribute('data-bs-id');
+                let label = button.getAttribute('data-bs-label');
+                let description = button.getAttribute('data-bs-description');
 
                 // Update the modal's content.
-                var modalTitle = labelInfoModal.querySelector('.modal-title');
+                let modalTitle = labelInfoModal.querySelector('.modal-title');
                 modalTitle.textContent = label ? "Edit Label" : "New Label";
 
                 $('#labelId').val(id);
@@ -133,27 +137,43 @@
                 let description = $('#labelDescription').val();
                 $.post('/label_management/create_or_update_label',
                     {'id': id, 'label': label, 'description': description}, function (res) {
-                        $('#messageHolder').text(res.status);
+                        $('#labelMessageHolder').text(res.status);
                         location.reload();
                     })
                     .fail(function (res) {
-                        console.log(res);
-                        $('#messageHolder').text(res.responseJSON.status);
+                        $('#labelMessageHolder').text(res.responseJSON.status);
                     })
                     .always(function () {
-                        $('#messageHolder').removeAttr('hidden');
+                        $('#labelMessageHolder').removeAttr('hidden');
                     });
             });
 
+
+            let deleteLabelModal = document.getElementById('labelDeleteModal');
+            deleteLabelModal.addEventListener('show.bs.modal', function (event) {
+                let button = event.relatedTarget;
+                let id = button.getAttribute('data-bs-id');
+                let label = button.getAttribute('data-bs-label');
+                $('#deleteDialog').text(`(id: ${id}) ${label}`);
+                $('#deleteLabel').attr('data-bs-id', id);
+            });
+
+            $('#deleteLabel').click(function (event) {
+                $('#labelDeleteMessageHolder').attr('hidden', 'true');
+                let id = event.currentTarget.getAttribute('data-bs-id');
+                $.ajax({
+                    url: `/label_management/delete_label/${id}`,
+                    type: 'DELETE'
+                }).done(function (res) {
+                    $('#labelDeleteMessageHolder').text(res.status);
+                    location.reload();
+                }).fail(function (res) {
+                    $('#labelDeleteMessageHolder').text(res.responseJSON.status);
+                }).always(function () {
+                    $('#labelDeleteMessageHolder').removeAttr('hidden');
+                });
+            });
         });
-
-        function label_edit_click(label_id) {
-            console.log(`edit ${label_id}`);
-        }
-
-        function label_delete_click(label_id) {
-            console.log(`delete ${label_id}`);
-        }
     </script>
 
 {% endblock %}
