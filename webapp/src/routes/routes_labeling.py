@@ -6,7 +6,7 @@ from src import app
 from src.database.models import Note, LabelingData
 from src.database.queries.artifact_queries import lock_artifact_by, add_artifacts
 from src.database.queries.label_queries import delete_label, update_artifact_label, \
-    label_artifact, get_label, get_or_create_label_with_text, update_label
+    label_artifact, get_label, get_or_create_label_with_text, update_label, get_all_labels
 from src.helper.consts import *
 from src.helper.tools_common import string_none_or_empty
 from src.helper.tools_labeling import *
@@ -236,14 +236,15 @@ def create_or_update_label():
 
     lbl = get_label(label_name)
     try:
-        lbl = get_or_create_label_with_text(label_name, description, who_is_signed_in()) if lbl is None \
+        get_or_create_label_with_text(label_name, description, who_is_signed_in()) if lbl is None \
             else update_label(lid, label_name, description)
         status = 'success'
+        msg = "saved successfully"
     except (ValueError, Exception) as e:
         status = 'error'
         msg = str(e)
 
-    return (jsonify({"status": "saved successfully"}), 200) if status == 'success' \
+    return (jsonify({"status": msg}), 200) if status == 'success' \
         else (jsonify({"status": msg}), 400)
 
 
@@ -264,10 +265,10 @@ def remove_label_by_id(label_id):
     return jsonify({"status": "deleted successfully!"}), 200
 
 
-@app.route('/label_management/merge_labels', methods=['GET'])
+@app.route('/label_management/merge_label', methods=['GET'])
 @login_required
-def merge_labels():
-    pass
+def merge_labels_view():
+    return render_template('labeling_pages/merge_label.html', labels=get_all_labels())
 
 
 @app.route("/labels", methods=['GET'])

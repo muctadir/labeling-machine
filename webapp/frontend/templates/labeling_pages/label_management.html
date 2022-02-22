@@ -1,19 +1,13 @@
 {% extends "common_pages/common_layout.html" %}
 
-
 {% block content %}
     <br>
     <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#labelInfoModal"
             data-bs-whatever="@mdo">Add New
     </button>
-    <button type="button" class="btn btn-secondary">Merge Labels</button>
+    <a href="/label_management/merge_label" class="btn btn-secondary">Merge Labels</a>
     <div class="clearfix"></div>
-    <!--<div class="btn-group" role="group" aria-label="Basic example">-->
-    <!--    <button type="button" class="btn btn-primary">Left</button>-->
-    <!--    <button type="button" class="btn btn-primary">Middle</button>-->
-    <!--    <button type="button" class="btn btn-primary">Right</button>-->
-    <!--</div>-->
-    <table class="table table-hover table-bordered">
+    <table class="table table-hover table-bordered" style="text-align: left">
         <thead>
         <tr>
             <th scope="col">#</th>

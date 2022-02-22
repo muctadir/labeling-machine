@@ -7,7 +7,6 @@
 
 {% block content %}
     <div class="container-fluid">
-
         <div class="header navbar">
             <form class="form-inline" style="justify-content: center;" id="form1">
                 <div class="form-group mx-sm-3 mb-2">
@@ -22,6 +21,12 @@
             </form>
         </div>
 
+        <div class="bg-info p-2 text-dark bg-opacity-10">Label Description:
+            <label id="labelDescription"> </label>
+        </div>
+
+        <br>
+
         <div class="list-group" id="artifact_container">
             <p class="list-group-item list-group-item-danger">Select a label</p>
         </div>
@@ -34,9 +39,14 @@
         $(document).ready(function () {
             $("#label_selector").change(function (data) {
                 $("#artifact_container").empty();
-                let label = data.currentTarget.value;
-                if (label) {
-                    $.get(`artifacts/${label}`, function (artifacts) {
+                let labelId = data.currentTarget.value;
+                if (labelId) {
+                    let labelText = data.currentTarget.options[data.currentTarget.selectedIndex].text;
+                    $.get(`/get_label_description/${labelText}`, function (desc) {
+                        $('#labelDescription').text(desc);
+                    });
+
+                    $.get(`artifacts/${labelId}`, function (artifacts) {
                         artifacts.forEach(function (art) {
                             $("#artifact_container").append(
                                 `<div class="list-group-item">

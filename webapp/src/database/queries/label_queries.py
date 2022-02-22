@@ -6,6 +6,10 @@ from src.database.models import LabelingData, ArtifactLabelRelation, Artifact
 from src.helper.tools_common import string_none_or_empty
 
 
+def get_all_labels():
+    return [lbl for lbl, in db.session.execute(select(LabelingData)).all()]
+
+
 def delete_label(label_id: int):
     labeled_arts = db.session.execute(
         select(ArtifactLabelRelation).where(ArtifactLabelRelation.label_id == label_id)).all()
