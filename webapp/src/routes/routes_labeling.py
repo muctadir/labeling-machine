@@ -289,13 +289,13 @@ def merge_labels():
 
     old_labels = [get_label(lbl) for lbl in old_label_names]
 
-    [f'{lbl.labeling} (lbl.' for lbl in old_labels]
-    new_label_description += f'[Merged: {}] '
+    new_label_description += '[Merged: ' + '. '.join(
+        [f'{lbl.labeling} ({lbl.label_description}) [{lbl.created_by}]' for lbl in old_labels]) + ']'
     labelled_artifacts = itertools.chain(*[get_artifacts_with_label(lbl) for lbl in old_label_names])
-    [label_artifact(art.id, new_label_txt, new_label_description, remark, 0, who_is_signed_in()) for art in
-     labelled_artifacts]
+    for art in labelled_artifacts:
+        label_artifact(art.id, new_label_txt, new_label_description, remark, 0, who_is_signed_in())
 
-    return ''
+    return jsonify({'status': f'merged labels: {", ".join(old_label_names)}'})
 
 
 @app.route("/labels", methods=['GET'])

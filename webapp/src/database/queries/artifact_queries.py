@@ -21,8 +21,7 @@ def add_artifacts(artifact_txt_list: List[str], creator: str) -> List[int]:
 def get_artifacts_with_label(label_text: str) -> List[Artifact]:
     qry = select(Artifact).join(ArtifactLabelRelation.artifact).join(ArtifactLabelRelation.label).where(
         LabelingData.labeling == label_text)
-    artifacts = db.session.execute(qry).all()
-    return artifacts
+    return [artifact for artifact, in db.session.execute(qry).all()]
 
 
 def unlock_artifacts_by(username):

@@ -102,8 +102,11 @@
                         'remark': $('#labelRemark').val()
                     };
                     $.post('/label_management/merge_label', data, function (resp) {
-                        console.log(resp);
-                    })
+                        location.reload();
+                    }).always(function (resp) {
+                        $('#labelMessageHolder').removeAttr('hidden');
+                        $('#labelMessageHolder').text(resp.status);
+                    });
                 }
 
 
