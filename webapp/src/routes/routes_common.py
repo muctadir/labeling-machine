@@ -7,7 +7,7 @@ from src import app, db
 from src.database.models import LabelingData, Artifact, ArtifactLabelRelation
 from src.database.queries.artifact_queries import unlock_artifacts_by, add_artifacts
 from src.helper.consts import CURRENT_TASK
-from src.helper.tools_common import who_is_signed_in, get_all_users, read_artifacts_from_file
+from src.helper.tools_common import who_is_signed_in, get_all_users, read_artifacts_from_file, string_none_or_empty
 from src.helper.tools_labeling import get_labeling_status, get_n_labeled_artifact_per_user, \
     get_overall_labeling_progress
 
@@ -92,24 +92,32 @@ def artifacts_with_conflicting_labels():
                                for aid, atxt in conflict_art])
 
 
-@app.route('/upload_artifact', methods=['GET', 'POST'])
+@app.route('/upload_artifact', methods=['GET'])
 @login_required
-def upload_artifact():
-    if request.method == 'GET':
-        return render_template('common_pages/upload_artifact.html')
-    elif request.method == 'POST':
-        if 'file' not in request.files:
-            flash('No file selected', category='error')
-            return redirect(request.url)
+def upload_artifact_view():
+    return render_template('common_pages/upload_artifact.html')
 
-        file = request.files['file']
-        # If the user does not select a file, the browser submits an
-        # empty file without a filename.
-        if file is None or file.filename == '':
-            flash('No file selected', category='error')
-            return redirect(request.url)
 
-        artifacts = read_artifacts_from_file(file)
-        add_artifacts(artifacts, who_is_signed_in())
-        flash(f'Added {len(artifacts)} artifacts', category='success')
+@app.route('/upload_artifact', methods=['POST'])
+@login_required
+def upload_artifact_post():
+    if 'file' not in request.files:
+        flash('No file selected', category='error')
         return redirect(request.url)
+
+    artifact_identifier = request.form['artifactIdentifier'] or ''
+    if string_none_or_empty(artifact_identifier):
+        flash('No artifact identifier provided', category='error')
+        return redirect(request.url)
+
+    file = request.files['file']
+    # If the user does not select a file, the browser submits an
+    # empty file without a filename.
+    if file is None or file.filename == '':
+        flash('No file selected', category='error')
+        return redirect(request.url)
+
+    artifacts = read_artifacts_from_file(file)
+    add_artifacts(artifacts, artifact_identifier, who_is_signed_in())
+    flash(f'Added {len(artifacts)} artifacts', category='success')
+    return redirect(request.url)

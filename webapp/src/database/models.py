@@ -70,6 +70,7 @@ class ArtifactLabelRelation(__TrackedModel):
 class Artifact(__TrackedModel):
     __tablename__ = 'Artifact'
     text = db.Column(db.Text, nullable=False)
+    identifier = db.Column(db.Text)
     labels_relation = relationship('ArtifactLabelRelation', back_populates='artifact')
 
 

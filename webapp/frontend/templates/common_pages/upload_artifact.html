@@ -20,8 +20,18 @@
 
 
         <form method=post enctype=multipart/form-data>
-            <input type='file' name='file' accept="text/plain">
-            <input type='submit' value='Upload'>
+            <div class="mb-3">
+                <label for="artifactIdentifier" class="form-label">Artifact Identifier</label>
+                <input type='text' id="artifactIdentifier" name="artifactIdentifier" class="form-control">
+            </div>
+            <div class="mb-3">
+                <label for="formFile" class="form-label">Choose a text (*.txt) file.</label>
+                <input id="formFile" type='file' name='file' accept="text/plain" class="form-control">
+            </div>
+            <div class="mb-3">
+                <button type="submit" class="btn btn-primary mb-3">Upload Artifact</button>
+            </div>
+
         </form>
     </div>
 {% endblock %}
