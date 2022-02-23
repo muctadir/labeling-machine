@@ -6,7 +6,8 @@ from sqlalchemy import select
 
 from src import app
 from src.database.models import Note, LabelingData
-from src.database.queries.artifact_queries import lock_artifact_by, add_artifacts, get_artifacts_with_label
+from src.database.queries.artifact_queries import lock_artifact_by, add_artifacts, get_artifacts_with_label, \
+    get_artifact_by_id
 from src.database.queries.label_queries import delete_label, update_artifact_label, \
     label_artifact, get_label, get_or_create_label_with_text, update_label, get_all_labels
 from src.helper.consts import *
@@ -32,30 +33,27 @@ def labeling():
         return "Why POST?"
 
 
-@app.route("/labeling/<target_artifact_id>", methods=['GET', 'POST'])
+@app.route("/labeling/<target_artifact_id>", methods=['GET'])
 @login_required
 def labeling_with_artifact(target_artifact_id):
     if not IS_SYSTEM_UP:
         return SYSTEM_STATUS_MESSAGE
 
-    if request.method != 'POST':
-        target_artifact_id = int(target_artifact_id)
+    target_artifact_id = int(target_artifact_id)
 
-        artifact_data = Artifact.query.filter_by(id=target_artifact_id).first()
-        all_labels = db.session.execute(select(LabelingData.id, LabelingData.labeling)).all()
-        all_taggers = [a for a, in db.session.execute(select(ArtifactLabelRelation.created_by).where(
-            ArtifactLabelRelation.artifact_id == target_artifact_id)).all()]
-        lock_artifact_by(who_is_signed_in(), target_artifact_id)
+    artifact_data = get_artifact_by_id(target_artifact_id)
+    all_labels = db.session.execute(select(LabelingData.id, LabelingData.labeling)).all()
+    all_taggers = [a for a, in db.session.execute(select(ArtifactLabelRelation.created_by).where(
+        ArtifactLabelRelation.artifact_id == target_artifact_id)).all()]
+    lock_artifact_by(who_is_signed_in(), target_artifact_id)
 
-        return render_template('labeling_pages/artifact.html',
-                               artifact_id=target_artifact_id,
-                               artifact_data=artifact_data,
-                               overall_labeling_status=get_overall_labeling_progress(),
-                               user_info=get_labeling_status(who_is_signed_in()),
-                               existing_labeling_data=all_labels,
-                               all_taggers=', '.join(all_taggers) if all_taggers is not None else None)
-    else:
-        return "Why POST?"
+    return render_template('labeling_pages/artifact.html',
+                           artifact_id=target_artifact_id,
+                           artifact_data=artifact_data,
+                           overall_labeling_status=get_overall_labeling_progress(),
+                           user_info=get_labeling_status(who_is_signed_in()),
+                           existing_labeling_data=all_labels,
+                           all_taggers=', '.join(all_taggers) if all_taggers is not None else None)
 
 
 @app.route("/note", methods=['GET', 'POST'])
@@ -186,29 +184,34 @@ def update_label_for_artifact(artifact_id, label_id, updated_label):
     return jsonify('{"status":"successfully updated artifact with new label"}')
 
 
+@app.route('/manual_label', methods=['GET'])
+@login_required
+def manual_label_view():
+    all_labels = db.session.execute(select(LabelingData.id, LabelingData.labeling)).all()
+    return render_template('labeling_pages/manual_labeling.html',
+                           existing_labeling_data=all_labels,
+                           overall_labeling_status=get_overall_labeling_progress())
+
+
 @app.route('/manual_label', methods=['GET', 'POST'])
 @login_required
-def manual_label():
-    if request.method == 'GET':
-        all_labels = db.session.execute(select(LabelingData.id, LabelingData.labeling)).all()
-        return render_template('labeling_pages/manual_labeling.html',
-                               existing_labeling_data=all_labels,
-                               overall_labeling_status=get_overall_labeling_progress())
-    elif request.method == 'POST':
-        if string_none_or_empty(request.form['artifact_txt']) or string_none_or_empty(
-                request.form['duration']) or string_none_or_empty(request.form['labeling_data']):
-            return jsonify('{ "status": "Empty arguments" }'), 400
+def manual_label_post():
+    if string_none_or_empty(request.form['artifact_txt']) or string_none_or_empty(
+            request.form['duration']) or string_none_or_empty(request.form['labeling_data']) or string_none_or_empty(
+        request.form['parent_artifact_id']):
+        return jsonify({"status": "Empty arguments"}), 400
 
-        labeling_data = request.form['labeling_data'].strip()
-        label_description = (request.form['label_description'] or '').strip()
-        remark = request.form['remark'].strip() if not string_none_or_empty(request.form['remark']) else None
-        duration_sec = int(request.form['duration'])
-        artifact_id = add_artifacts([request.form['artifact_txt'].strip()], who_is_signed_in())[0]
-        status = label_artifact(artifact_id, labeling_data, label_description, remark, duration_sec, who_is_signed_in())
-        return jsonify(f'{{ "status": "{status}" }}')
+    parent_artifact = get_artifact_by_id(int(request.form['parent_artifact_id'].strip()))
+    if parent_artifact is None:
+        return jsonify({"status": "invalid parent artifact"}), 400
 
-    else:
-        return 'invalid', 400
+    labeling_data = request.form['labeling_data'].strip()
+    label_description = (request.form['label_description'] or '').strip()
+    remark = request.form['remark'].strip() if not string_none_or_empty(request.form['remark']) else None
+    duration_sec = int(request.form['duration'])
+    artifact_id = add_artifacts([request.form['artifact_txt'].strip()], parent_artifact.identifier, who_is_signed_in())
+    status = label_artifact(artifact_id[0], labeling_data, label_description, remark, duration_sec, who_is_signed_in())
+    return jsonify({"status": f"{status}"})
 
 
 @app.route('/get_label_description/<label_data>', methods=['GET'])

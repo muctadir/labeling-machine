@@ -4,8 +4,12 @@
     <div class="mx-auto" style="width: 80em;">
         <form>
             <div class="form-group">
-                <label for="exampleFormControlTextarea1">Artifact</label>
-                <textarea class="form-control" id="artifactText" rows="8"></textarea>
+                <label for="parentArtifactId">Parent Artifact Id</label>
+                <input class="form-control" id="parentArtifactId" name="parentArtifactId" type="number">
+            </div>
+            <div class="form-group">
+                <label for="artifactText">Artifact</label>
+                <textarea class="form-control" id="artifactText" rows="8" name="artifactText"></textarea>
             </div>
         </form>
     </div>
@@ -20,8 +24,10 @@
 
         function on_submit() {
             let data_json = {
+                parent_artifact_id: $('#parentArtifactId').val(),
                 artifact_txt: $('#artifactText').val(),
                 labeling_data: $('#label_selector').val(),
+                label_description: $('#label_description').val(),
                 remark: $('#remark').val(),
                 duration: get_elapsed_seconds()
             };

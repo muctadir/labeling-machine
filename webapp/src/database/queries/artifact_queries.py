@@ -8,6 +8,10 @@ from src.database.models import Artifact, LockedArtifact, ArtifactLabelRelation,
 from src.helper.tools_common import string_none_or_empty, who_is_signed_in
 
 
+def get_artifact_by_id(art_id: int):
+    return db.session.execute(select(Artifact).where(Artifact.id == art_id)).scalar()
+
+
 def add_artifacts(artifact_txt_list: List[str], artifact_identifier: str, creator: str) -> List[int]:
     artifact_txt_list = filter(lambda s: not string_none_or_empty(s), artifact_txt_list)
     inserted_ids = []
