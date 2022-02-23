@@ -2,14 +2,12 @@
 
 {% block content %}
     <div class="bg">
-        <main role="main" class="container main-box">
-            <div class="jumbotron" style="background-color: #e9ecef;">
-                <h1 align="center">Welcome to the Labeling Machine</h1>
-                <br>
-                <br>
-                <br>
-                <p class="lead">Excited to get your hands dirty?</p>
-                <div class=" mx-auto">
+        <div role="main" class="container">
+            <div class="position-absolute top-50 start-50 translate-middle" style="background-color: #e9ecef;">
+                <div class="ms-5 my-5">
+                    <h1>Welcome to the Labeling Machine</h1>
+                    <br>
+                    <p class="lead">Excited to get your hands dirty?</p>
                     {% with messages = get_flashed_messages(with_categories=True) %}
                         {% if messages %}
                             {% for category, message in messages %}
@@ -17,29 +15,25 @@
                             {% endfor %}
                         {% endif %}
                     {% endwith %}
-                    <form action="/signin" method="post">
-                        <div class="form-row">
-                            <div class="col-12 col-md-5 mb-2 mb-md-0">
-                                <input name="user" type="text" class="form-control form-control-lg"
-                                       pattern=".{3,20}" required title="3 to 20 chars"
-                                       placeholder="Enter your name...">
-                            </div>
-                            <div class="col-12 col-md-4 mb-2 mb-md-0">
-                                <input name="password" type="password" class="form-control form-control-lg"
-                                       pattern=".{3,20}" required title="3 to 20 chars"
-                                       placeholder="Enter your password...">
-                            </div>
-                            <div class="col-12 col-md-3">
-                                <button type="submit" class="btn btn-block btn-lg btn-primary">Start now!</button>
-                            </div>
+
+                    <form action="/signin" method="post" class="row">
+                        <div class="col">
+                            <input name="user" type="text" class="form-control form-control-lg"
+                                   pattern=".{3,20}" required title="3 to 20 chars"
+                                   placeholder="Enter your username...">
                         </div>
+                        <div class="col">
+                            <input name="password" type="password" class="form-control form-control-lg"
+                                   pattern=".{3,20}" required title="3 to 20 chars"
+                                   placeholder="Enter your password...">
+                        </div>
+                        <div class="col">
+                            <button type="submit" class="btn btn-block btn-lg btn-primary">Start now!</button>
+                        </div>
+
                     </form>
                 </div>
-                {#                <span class="lead">#}
-                {#                        Or have a look at your ranking:#}
-                {#                        <a href="/stat" class="btn btn-secondary" style="margin-left: 2rem;"> Stats </a>#}
-                {#                </span>#}
             </div>
-        </main>
+        </div>
     </div>
 {% endblock %}

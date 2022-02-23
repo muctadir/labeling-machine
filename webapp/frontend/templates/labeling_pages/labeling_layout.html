@@ -16,24 +16,30 @@
     </div>
 
     <div class="lower-panel fixed-bottom ">
-        <form class="form-inline" style="justify-content: center;" id="form1">
-            <div class="form-group mx-sm-3 mb-auto">
-                <select class="js-example-basic-single" name="labeling_data" id="label_selector" style="width: 400px">
-                    <option value='' selected="selected"></option>
-                    {% for key, item in existing_labeling_data %}
-                        <option value="{{ item }}" title="{{ item }}">{{ item }}</option>
-                    {% endfor %}
-                </select>
+        <form style="justify-content: center;" id="form1">
+            <div class="row mb-3">
+                <div class="col">
+                    <select class="form-select" name="labeling_data" id="label_selector">
+                        <option value='' selected="selected"></option>
+                        {% for key, item in existing_labeling_data %}
+                            <option value="{{ item }}" title="{{ item }}">{{ item }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col">
+                    <input type="text" id="remark" class="form-control" placeholder="Remark">
+                </div>
+                <div class="col-auto">
+                    <button type="button" id="submit_btn" form="form1" class="btn btn-primary" disabled>Submit
+                    </button>
+                </div>
             </div>
-
-            <input type="text" id="label_description" class="form-control mx-sm-3 mb-auto"
-                   placeholder="Label Description"
-                   style="width: 60em;">
-
-            <input type="text" id="remark" class="form-control mx-sm-3 mb-auto" placeholder="Remark"
-                   style="width: 60em;">
-
-            <button type="button" id="submit_btn" form="form1" class="btn btn-primary mb-auto" disabled>Submit</button>
+            <div class="row mb-1">
+                <div class="col">
+                    <input type="text" id="label_description" class="form-control"
+                           placeholder="Label Description">
+                </div>
+            </div>
         </form>
     </div>
 {% endblock %}
