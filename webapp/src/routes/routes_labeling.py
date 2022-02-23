@@ -1,10 +1,12 @@
+import itertools
+
 from flask import render_template, request, redirect, url_for, jsonify
 from flask_login import login_required
 from sqlalchemy import select
 
 from src import app
 from src.database.models import Note, LabelingData
-from src.database.queries.artifact_queries import lock_artifact_by, add_artifacts
+from src.database.queries.artifact_queries import lock_artifact_by, add_artifacts, get_artifacts_with_label
 from src.database.queries.label_queries import delete_label, update_artifact_label, \
     label_artifact, get_label, get_or_create_label_with_text, update_label, get_all_labels
 from src.helper.consts import *
@@ -269,6 +271,31 @@ def remove_label_by_id(label_id):
 @login_required
 def merge_labels_view():
     return render_template('labeling_pages/merge_label.html', labels=get_all_labels())
+
+
+@app.route('/label_management/merge_label', methods=['POST'])
+@login_required
+def merge_labels():
+    old_label_names = list(filter(lambda i: not string_none_or_empty(i), request.form.getlist('labelNames[]') or []))
+    new_label_txt = request.form['newLabel']
+    new_label_description = request.form['newLabelDescription'] or ''
+    remark = request.form['remark'] or ''
+
+    if string_none_or_empty(new_label_txt) or len(old_label_names) < 2:
+        return jsonify({'status': 'parameters are not valid'}), 400
+
+    if get_label(new_label_txt) is not None:
+        return jsonify({'status': f'label "{new_label_txt}" already exists'}), 400
+
+    old_labels = [get_label(lbl) for lbl in old_label_names]
+
+    [f'{lbl.labeling} (lbl.' for lbl in old_labels]
+    new_label_description += f'[Merged: {}] '
+    labelled_artifacts = itertools.chain(*[get_artifacts_with_label(lbl) for lbl in old_label_names])
+    [label_artifact(art.id, new_label_txt, new_label_description, remark, 0, who_is_signed_in()) for art in
+     labelled_artifacts]
+
+    return ''
 
 
 @app.route("/labels", methods=['GET'])

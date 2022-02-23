@@ -41,6 +41,10 @@
                             <label for="labelDescription" class="col-form-label">New Label Description:</label>
                             <textarea class="form-control" id="labelDescription"></textarea>
                         </div>
+                        <div class="mb-3">
+                            <label for="labelRemark" class="col-form-label">Remark:</label>
+                            <textarea class="form-control" id="labelRemark"></textarea>
+                        </div>
                         <div class="mb-3 bg-danger text-white">
                             Please note that, selected labels will be deleted and all artifacts will be relabeled with
                             the new label.
@@ -91,12 +95,14 @@
                     $('#labelMessageHolder').removeAttr('hidden');
                     $('#labelMessageHolder').text('Please select at least 2 labels');
                 } else {
-                    $.post('', {
-                        labelNames: selectedLabels,
-                        newLabel: $('#labelName').val(),
-                        newLabelDescription: $('#labelDescription').val()
-                    }, function (resp) {
-
+                    let data = {
+                        'labelNames': selectedLabels,
+                        'newLabel': $('#labelName').val(),
+                        'newLabelDescription': $('#labelDescription').val(),
+                        'remark': $('#labelRemark').val()
+                    };
+                    $.post('/label_management/merge_label', data, function (resp) {
+                        console.log(resp);
                     })
                 }
 

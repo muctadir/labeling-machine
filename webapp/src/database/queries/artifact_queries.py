@@ -4,7 +4,7 @@ from typing import List
 from sqlalchemy import insert, func, select, distinct
 
 from src import db
-from src.database.models import Artifact, LockedArtifact, ArtifactLabelRelation, FlaggedArtifact
+from src.database.models import Artifact, LockedArtifact, ArtifactLabelRelation, FlaggedArtifact, LabelingData
 from src.helper.tools_common import string_none_or_empty, who_is_signed_in
 
 
@@ -16,6 +16,13 @@ def add_artifacts(artifact_txt_list: List[str], creator: str) -> List[int]:
         inserted_ids.append(db.session.execute(stmt).inserted_primary_key[0])
     db.session.commit()
     return inserted_ids
+
+
+def get_artifacts_with_label(label_text: str) -> List[Artifact]:
+    qry = select(Artifact).join(ArtifactLabelRelation.artifact).join(ArtifactLabelRelation.label).where(
+        LabelingData.labeling == label_text)
+    artifacts = db.session.execute(qry).all()
+    return artifacts
 
 
 def unlock_artifacts_by(username):
