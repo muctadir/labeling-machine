@@ -21,10 +21,10 @@ RUN pip3 install --upgrade pip
 RUN pip3 install --trusted-host pypi.python.org -r /labeling-machine/requirements.txt
 
 WORKDIR /labeling-machine/webapp
-RUN flask db upgrade
+RUN chmod +x start_flask.sh
 
 # Make port 5000 available to the world outside this container
 EXPOSE 5000
 
 # Run webapp when the container launches
-CMD ["flask", "run", "--host=0.0.0.0"]
+CMD ["./start_flask.sh"]
