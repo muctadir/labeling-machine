@@ -6,6 +6,7 @@ from sqlalchemy.sql.functions import count
 from src import app, db
 from src.database.models import LabelingData, Artifact, ArtifactLabelRelation
 from src.database.queries.artifact_queries import unlock_artifacts_by, add_artifacts
+from src.database.queries.label_queries import get_all_labels
 from src.helper.consts import CURRENT_TASK
 from src.helper.tools_common import who_is_signed_in, get_all_users, read_artifacts_from_file, string_none_or_empty
 from src.helper.tools_labeling import get_labeling_status, get_n_labeled_artifact_per_user, \
@@ -86,6 +87,7 @@ def artifacts_with_conflicting_labels():
         art_lbl[aid].append((lid, lbl, creator, remark))
 
     return render_template('common_pages/conflict.html',
+                           labels=[lbl.labeling for lbl in get_all_labels()],
                            conflict_labels=[
                                dict(id=aid, text=atxt, labels=[dict(id=lid, label=lbl, creator=creator, remark=remark)
                                                                for lid, lbl, creator, remark in art_lbl[aid]])

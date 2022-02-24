@@ -29,16 +29,18 @@
                                         <div class="form-group-sm row">
                                             <label class="col-sm-3 col-form-label-sm">Label</label>
                                             <div class="col-sm-9">
-                                                <select id="labelSelect{{ data['id'] }}" class="form-control-sm">
-                                                    <option selected>Choose...</option>
-                                                    <option>...</option>
+                                                <select id="labelSelect{{ label['id'] }}" class="form-control">
+                                                    {% for lbl in labels %}
+                                                        <option {{ 'selected' if lbl == label['label'] else '' }}
+                                                                value="{{ lbl }}">{{ lbl }}</option>
+                                                    {% endfor %}
                                                 </select>
                                             </div>
                                         </div>
                                         <div class="form-group-sm row">
                                             <label class="col-sm-3 col-form-label-sm">Remark</label>
                                             <div class="col-sm-9">
-                                                <textarea type="text"
+                                                <textarea type="text" id="labelRemark{{ label['id'] }}"
                                                           class="form-control"
                                                           cols="1">{{ label['remark'] or '' }}</textarea>
                                             </div>
@@ -49,30 +51,14 @@
                                                 <input type="text" readonly
                                                        class="form-control-plaintext form-control-sm"
                                                        class="form-control" value="{{ label['creator'] }}">
-                                                <button type="submit" class="btn-sm btn-primary mb-2">Save</button>
+                                                <button class="btn-sm btn-primary mb-2 btn-save-label"
+                                                        data-artifact-id="{{ data['id'] }}"
+                                                        data-label-id="{{ label['id'] }}">
+                                                    Save
+                                                </button>
                                             </div>
                                         </div>
-
-                                        {#                                        <div class="form-row">#}
-                                        {#                                            <div class="col-md-5 mb-4">#}
-                                        {#                                                <label for="validationDefault01">Label:</label>#}
-                                        {#                                                <label for="validationDefault01">{{ label['label'] }}</label>#}
-                                        {#                                            </div>#}
-                                        {#                                        </div>#}
-                                        {#                                        <div class="form-row">#}
-                                        {#                                            <div class="col-md-5 mb-4">#}
-                                        {#                                                <label for="validationDefault01">Remark:</label>#}
-                                        {#                                                <label for="validationDefault01">{{ label['remark'] }}</label>#}
-                                        {#                                            </div>#}
-                                        {#                                        </div>#}
                                     </form>
-
-
-                                    {#                                    <div>Current Label: {{ label['label'] }}</div>#}
-                                    {#                                    #}
-                                    {#                                    #}
-                                    {#                                    <div>Labeled by: {{ label['creator'] }}</div>#}
-                                    {#                                    <div>Remark: {{ label['remark'] }}</div>#}
                                 </div>
                             {% endfor %}
                         </td>
@@ -87,22 +73,25 @@
 
 {% block scriptsStuff %}
     <script>
-        {#$(document).ready(function () {#}
-        {#    $("#label_selector").change(function (data) {#}
-        {#        $("#artifact_container").empty();#}
-        {#        let label = data.currentTarget.value;#}
-        {#        if (label) {#}
-        {#            $.get(`artifacts/${label}`, function (artifacts) {#}
-        {#                artifacts.forEach(function (art) {#}
-        {#                    $("#artifact_container").append(#}
-        {#                        `<div class="list-group-item"><p class="mb-1">[id#${art.id}] ${art.text}</p></div>`#}
-        {#                    );#}
-        {#                });#}
-        {#            });#}
-        {#        } else {#}
-        {#            $("#artifact_container").html('<p class="list-group-item list-group-item-danger">Select a label</p>');#}
-        {#        }#}
-        {#    });#}
-        {#);#}
+
+        $(function () {
+            $('.btn-save-label').click(function (event) {
+                let btn = event.currentTarget;
+                let old_lbl_id = btn.getAttribute('data-label-id');
+                let art_id = btn.getAttribute('data-artifact-id');
+                let new_lbl = $(`#labelSelect${old_lbl_id}`).val();
+                let new_remark = $(`#labelRemark${old_lbl_id}`).val();
+                $.ajax({
+                    url: `/update_label_for_artifact/${art_id}/${old_lbl_id}`,
+                    type: 'PUT',
+                    data: JSON.stringify({
+                    new_label: new_lbl,
+                    remark: new_remark
+                })
+                }).done(function(res) {
+                    console.log(res);
+                });
+            });
+        });
     </script>
 {% endblock %}

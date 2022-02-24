@@ -164,13 +164,15 @@ def label():
         return "Not POST!", 400
 
 
-@app.route('/update_label_for_artifact/<artifact_id>/<label_id>/<updated_label>', methods=['PUT'])
+@app.route('/update_label_for_artifact/<artifact_id>/<label_id>', methods=['PUT'])
 @login_required
 # todo: add description to a newly added label
-def update_label_for_artifact(artifact_id, label_id, updated_label):
+def update_label_for_artifact(artifact_id, label_id):
     if request.method != 'PUT':
         return "Not PUT!", 400
 
+    updated_label = request.form['new_label'] or ''
+    remark = request.form['remark'] or ''
     if string_none_or_empty(artifact_id) or string_none_or_empty(label_id) or string_none_or_empty(
             updated_label):
         return jsonify('{ "status": "Empty arguments" }'), 400
