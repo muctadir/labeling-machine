@@ -166,24 +166,29 @@ def label():
 
 @app.route('/update_label_for_artifact/<artifact_id>/<label_id>', methods=['PUT'])
 @login_required
-# todo: add description to a newly added label
 def update_label_for_artifact(artifact_id, label_id):
-    if request.method != 'PUT':
-        return "Not PUT!", 400
-
-    updated_label = request.form['new_label'] or ''
-    remark = request.form['remark'] or ''
+    updated_label = str.strip(request.form['new_label'] or '')
+    remark = str.strip(request.form['remark'] or '')
     if string_none_or_empty(artifact_id) or string_none_or_empty(label_id) or string_none_or_empty(
             updated_label):
         return jsonify('{ "status": "Empty arguments" }'), 400
 
     artifact_id = int(artifact_id)
     label_id = int(label_id)
+
     try:
-        update_artifact_label(artifact_id, label_id, updated_label, '', who_is_signed_in())
+        old_remark, old_creator, old_lbl = db.session.execute(
+            select(ArtifactLabelRelation.remark, ArtifactLabelRelation.created_by, LabelingData.labeling).join(
+                ArtifactLabelRelation.label).where(
+                ArtifactLabelRelation.artifact_id == artifact_id, ArtifactLabelRelation.label_id == label_id)).first()
+        remark += f' [(OLD) label: {old_lbl}, remark: {old_remark}, by: {old_creator}]'
+        update_artifact_label(artifact_id, label_id, updated_label, remark, who_is_signed_in())
     except ValueError as e:
-        return jsonify(f'{{"error": "{e}"}}'), 400
-    return jsonify('{"status":"successfully updated artifact with new label"}')
+        return jsonify({"status": f"{e}"}), 400
+    except TypeError as e:
+        return jsonify({'status': 'invalid data'}), 400
+
+    return jsonify({"status": "successfully updated artifact with new label"})
 
 
 @app.route('/manual_label', methods=['GET'])
