@@ -42,7 +42,8 @@ def update_artifact_label(artifact_id: int, old_label_id: int, new_label_txt: st
     new_label_id = db.session.execute(select(LabelingData.id).where(LabelingData.labeling == new_label_txt)).scalar()
     qry = update(ArtifactLabelRelation).where(
         ArtifactLabelRelation.artifact_id == artifact_id, ArtifactLabelRelation.label_id == old_label_id).values(
-        label_id=new_label_id, remark=label_remark, created_by=creator)
+        label_id=new_label_id, remark=label_remark, created_by=creator,
+        label_update_count=ArtifactLabelRelation.label_update_count + 1)
     db.session.execute(qry)
     db.session.commit()
 

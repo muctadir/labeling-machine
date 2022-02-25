@@ -188,7 +188,7 @@ def update_label_for_artifact(artifact_id, label_id):
     except TypeError as e:
         return jsonify({'status': 'invalid data'}), 400
 
-    return jsonify({"status": "successfully updated artifact with new label"})
+    return jsonify({"status": f"successfully updated artifact (id:{artifact_id}) with label ({updated_label})"})
 
 
 @app.route('/manual_label', methods=['GET'])
