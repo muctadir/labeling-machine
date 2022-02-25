@@ -233,7 +233,7 @@ def get_label_description(label_data: str):
 @app.route('/label_management', methods=['GET'])
 @login_required
 def label_management_view():
-    all_labels = [a for a, in db.session.execute(select(LabelingData)).all()]
+    all_labels = get_all_labels()
     return render_template('labeling_pages/label_management.html', all_labels=all_labels)
 
 

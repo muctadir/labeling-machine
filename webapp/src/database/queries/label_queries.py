@@ -7,7 +7,7 @@ from src.helper.tools_common import string_none_or_empty
 
 
 def get_all_labels():
-    return [lbl for lbl, in db.session.execute(select(LabelingData)).all()]
+    return [a for a, in db.session.execute(select(LabelingData).order_by(LabelingData.labeling)).all()]
 
 
 def delete_label(label_id: int):
