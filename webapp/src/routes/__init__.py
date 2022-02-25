@@ -1,1 +1,1 @@
-from src.routes import routes_common, routes_labeling, auth_routes
+from src.routes import routes_common, routes_labeling, auth_routes, routes_theme
