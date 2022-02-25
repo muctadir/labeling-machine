@@ -94,3 +94,5 @@ def get_n_labeled_artifact_per_user():
         ArtifactLabelRelation.created_by, count(distinct(ArtifactLabelRelation.artifact_id))).group_by(
         ArtifactLabelRelation.created_by).all()
     return {user: lab_art for user, lab_art in result}
+
+# todo: get all labels without theme
