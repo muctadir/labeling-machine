@@ -11,7 +11,7 @@ def get_label_by_id(lbl_id: int):
 
 
 def get_all_labels():
-    return [lbl for lbl, in db.session.execute(select(LabelingData)).all()]
+    return [a for a, in db.session.execute(select(LabelingData).order_by(LabelingData.labeling)).all()]
 
 
 def delete_label(label_id: int):
@@ -42,19 +42,14 @@ def update_label(label_id: int, new_name: str, new_description: str):
     db.session.commit()
 
 
-def update_artifact_label(artifact_id: int, old_label_id: int, new_label_txt: str, new_label_description: str,
+def update_artifact_label(artifact_id: int, old_label_id: int, new_label_txt: str, label_remark: str,
                           creator: str):
-    updated_label = get_or_create_label_with_text(new_label_txt, new_label_description, creator)
-    artifact_label_rel = db.session.execute(
-        select(ArtifactLabelRelation).where(ArtifactLabelRelation.artifact_id == artifact_id).where(
-            ArtifactLabelRelation.label_id == old_label_id)).scalar()
-
-    if artifact_label_rel is None:
-        raise ValueError("artifact is not labeled with this label")
-
-    artifact_label_rel.label_id = updated_label.id
-    db.session.add(artifact_label_rel)
-    db.session.flush()
+    new_label_id = db.session.execute(select(LabelingData.id).where(LabelingData.labeling == new_label_txt)).scalar()
+    qry = update(ArtifactLabelRelation).where(
+        ArtifactLabelRelation.artifact_id == artifact_id, ArtifactLabelRelation.label_id == old_label_id).values(
+        label_id=new_label_id, remark=label_remark, created_by=creator,
+        label_update_count=ArtifactLabelRelation.label_update_count + 1)
+    db.session.execute(qry)
     db.session.commit()
 
 

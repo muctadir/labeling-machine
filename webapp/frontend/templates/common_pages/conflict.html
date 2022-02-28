@@ -25,7 +25,7 @@
                         <td>
                             {% for label in data['labels'] %}
                                 <div class="card" style="text-align: left">
-                                    <form>
+                                    <form id="update-label-form">
                                         <div class="form-group-sm row">
                                             <label class="col-sm-3 col-form-label-sm">Label</label>
                                             <div class="col-sm-9">
@@ -51,7 +51,7 @@
                                                 <input type="text" readonly
                                                        class="form-control-plaintext form-control-sm"
                                                        class="form-control" value="{{ label['creator'] }}">
-                                                <button class="btn-sm btn-primary mb-2 btn-save-label"
+                                                <button class="btn-sm btn-primary mb-2 btn-save-label" type="button"
                                                         data-artifact-id="{{ data['id'] }}"
                                                         data-label-id="{{ label['id'] }}">
                                                     Save
@@ -72,6 +72,7 @@
 {% endblock %}
 
 {% block scriptsStuff %}
+    <script src="{{ url_for('static', filename='js/notification.js') }}"></script>
     <script>
 
         $(function () {
@@ -83,13 +84,18 @@
                 let new_remark = $(`#labelRemark${old_lbl_id}`).val();
                 $.ajax({
                     url: `/update_label_for_artifact/${art_id}/${old_lbl_id}`,
-                    type: 'PUT',
-                    data: JSON.stringify({
-                    new_label: new_lbl,
-                    remark: new_remark
-                })
-                }).done(function(res) {
-                    console.log(res);
+                    method: 'PUT',
+                    data: {
+                        new_label: new_lbl,
+                        remark: new_remark
+                    },
+                    success: function(res) {
+                        ShowNotification(res.status, 'success');
+                        setTimeout(function(){location.reload();}, 1000);
+                    },
+                    fail:function (res){
+                        ShowNotification(res.status, 'error');
+                    }
                 });
             });
         });
