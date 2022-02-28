@@ -9,7 +9,7 @@ from src.database.models import Note, LabelingData
 from src.database.queries.artifact_queries import lock_artifact_by, add_artifacts, get_artifacts_with_label, \
     get_artifact_by_id
 from src.database.queries.label_queries import delete_label, update_artifact_label, \
-    label_artifact, get_label, get_or_create_label_with_text, update_label, get_all_labels
+    label_artifact, get_label, get_or_create_label_with_text, update_label, get_all_labels, get_label_by_id
 from src.helper.consts import *
 from src.helper.tools_common import string_none_or_empty
 from src.helper.tools_labeling import *
@@ -236,15 +236,15 @@ def label_management_view():
 @login_required
 def create_or_update_label():
     lid = request.form['id']
-    label_name = request.form['label']
-    description = request.form['description']
-    if string_none_or_empty(label_name) or string_none_or_empty(description):
+    new_label_name = request.form['label']
+    new_description = request.form['description']
+    if string_none_or_empty(new_label_name) or string_none_or_empty(new_description):
         return jsonify({"status": "Empty arguments"}), 400
 
-    lbl = get_label(label_name)
     try:
-        get_or_create_label_with_text(label_name, description, who_is_signed_in()) if lbl is None \
-            else update_label(lid, label_name, description)
+        lbl = get_label_by_id(int(lid))
+        get_or_create_label_with_text(new_label_name, new_description, who_is_signed_in()) if lbl is None \
+            else update_label(lid, new_label_name, new_description)
         status = 'success'
         msg = "saved successfully"
     except (ValueError, Exception) as e:
