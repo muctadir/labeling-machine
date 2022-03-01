@@ -47,14 +47,18 @@
 
 
 {% block artifact_content %}
-    <h5>Artifact # {{ artifact_id }} </h5>
-    <h4>{{ artifact_data.text }}</h4>
-    {% if all_taggers is not none and all_taggers | length > 0 %}
-        <h5>Taggers: {{ all_taggers }}</h5>
-    {% else %}
-        <h5>Taggers: {{ all_taggers | length }} tagger</h5>
-    {% endif %}
+    <div style="padding-bottom: 7rem">
+        <div>Artifact # {{ artifact_id }} </div>
+        <h4>{{ artifact_data.text }}</h4>
+        <div>
+            {% if all_taggers is not none and all_taggers | length > 0 %}
+                Taggers: {{ all_taggers }}
+            {% else %}
+                Taggers: {{ all_taggers | length }} tagger
+            {% endif %}
+        </div>
 
+    </div>
 {% endblock %}
 
 {% block submit_script %}

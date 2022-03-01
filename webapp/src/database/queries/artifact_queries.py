@@ -12,11 +12,13 @@ def get_artifact_by_id(art_id: int):
     return db.session.execute(select(Artifact).where(Artifact.id == art_id)).scalar()
 
 
-def add_artifacts(artifact_txt_list: List[str], artifact_identifier: str, creator: str) -> List[int]:
+def add_artifacts(artifact_txt_list: List[str], artifact_identifier: str, creator: str,
+                  manually_uploaded: bool = False) -> List[int]:
     artifact_txt_list = filter(lambda s: not string_none_or_empty(s), artifact_txt_list)
     inserted_ids = []
     for art in artifact_txt_list:
-        stmt = insert(Artifact).values(text=art, identifier=artifact_identifier, created_by=creator)
+        stmt = insert(Artifact).values(text=art, identifier=artifact_identifier, created_by=creator,
+                                       uploaded_manually=manually_uploaded)
         inserted_ids.append(db.session.execute(stmt).inserted_primary_key[0])
     db.session.commit()
     return inserted_ids

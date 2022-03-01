@@ -216,7 +216,8 @@ def manual_label_post():
     label_description = (request.form['label_description'] or '').strip()
     remark = request.form['remark'].strip() if not string_none_or_empty(request.form['remark']) else None
     duration_sec = int(request.form['duration'])
-    artifact_id = add_artifacts([request.form['artifact_txt'].strip()], parent_artifact.identifier, who_is_signed_in())
+    artifact_id = add_artifacts([request.form['artifact_txt'].strip()], parent_artifact.identifier, who_is_signed_in(),
+                                True)
     status = label_artifact(artifact_id[0], labeling_data, label_description, remark, duration_sec, who_is_signed_in())
     return jsonify({"status": f"{status}"})
 

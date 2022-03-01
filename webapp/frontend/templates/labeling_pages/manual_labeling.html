@@ -32,11 +32,12 @@
                 duration: get_elapsed_seconds()
             };
             $.post("/manual_label", data_json, function (response, status) {
-                console.log(response);
-                let response_json = $.parseJSON(response.toString());
-                ShowNotification(response_json['status'], "success");
-                ChangeSkipToNext();
+                ShowNotification(response['status'], "success");
                 $('#artifactText').val('');
+                $('#parentArtifactId').val('');
+                $('#label_selector').val('');
+                $('#label_description').val('');
+                $('#remark').val('');
             });
         }
     </script>
