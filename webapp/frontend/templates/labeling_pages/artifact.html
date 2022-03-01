@@ -84,6 +84,8 @@
                 let response_json = $.parseJSON(response.toString())
                 ShowNotification(response_json['status'], "success");
                 ChangeSkipToNext();
+            }).fail(function (){
+                ShowNotification("Something went wrong!!!", 'danger');
             });
         }
     </script>

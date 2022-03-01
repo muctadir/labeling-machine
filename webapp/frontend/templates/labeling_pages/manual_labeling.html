@@ -38,6 +38,8 @@
                 $('#label_selector').val('');
                 $('#label_description').val('');
                 $('#remark').val('');
+            }).fail(function (res){
+                ShowNotification("Error occurred. Possible empty argument", 'danger');
             });
         }
     </script>
