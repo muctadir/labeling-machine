@@ -47,8 +47,8 @@
 
 
 {% block artifact_content %}
-    <h4>Artifact # {{ artifact_id }} </h4>
-    <h1>{{ artifact_data.text }}</h1>
+    <h5>Artifact # {{ artifact_id }} </h5>
+    <h4>{{ artifact_data.text }}</h4>
     {% if all_taggers is not none and all_taggers | length > 0 %}
         <h5>Taggers: {{ all_taggers }}</h5>
     {% else %}
