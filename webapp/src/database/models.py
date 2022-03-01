@@ -68,6 +68,7 @@ class Artifact(__TrackedModel):
     text = db.Column(db.Text, nullable=False)
     identifier = db.Column(db.Text)
     labels_relation = relationship('ArtifactLabelRelation', back_populates='artifact')
+    uploaded_manually = db.Column(db.Boolean, default=False, nullable=False)
 
 
 class LabelingData(__TrackedModel):
@@ -77,8 +78,6 @@ class LabelingData(__TrackedModel):
     artifacts_relation = relationship('ArtifactLabelRelation', back_populates='label')
     theme_id = db.Column(db.ForeignKey('Theme.id'))
     theme = relationship('Theme', back_populates='labels')
-
-
 class Theme(__TrackedModel):
     __tablename__ = 'Theme'
     theme = db.Column(db.Text, nullable=False, unique=True)

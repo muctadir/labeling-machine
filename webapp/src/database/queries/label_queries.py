@@ -6,6 +6,10 @@ from src.database.models import LabelingData, ArtifactLabelRelation, Artifact
 from src.helper.tools_common import string_none_or_empty
 
 
+def get_label_by_id(lbl_id: int):
+    return db.session.execute(select(LabelingData).where(LabelingData.id == lbl_id)).scalar()
+
+
 def get_all_labels():
     return [a for a, in db.session.execute(select(LabelingData).order_by(LabelingData.labeling)).all()]
 
@@ -23,17 +27,18 @@ def delete_label(label_id: int):
     db.session.commit()
 
 
-def update_label(label_id: int, name: str, description: str):
-    if string_none_or_empty(name):
+def update_label(label_id: int, new_name: str, new_description: str):
+    if string_none_or_empty(new_name):
         raise ValueError('label is empty')
 
     existing = db.session.execute(
-        select(LabelingData).where(LabelingData.labeling == name, LabelingData.id != label_id)).all()
+        select(LabelingData).where(LabelingData.labeling == new_name, LabelingData.id != label_id)).all()
     if existing is not None and len(existing) > 0:
         raise ValueError('label already exists')
 
     db.session.execute(
-        update(LabelingData).where(LabelingData.id == label_id).values(labeling=name, label_description=description))
+        update(LabelingData).where(LabelingData.id == label_id).values(labeling=new_name,
+                                                                       label_description=new_description))
     db.session.commit()
 
 

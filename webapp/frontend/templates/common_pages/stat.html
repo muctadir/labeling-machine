@@ -9,7 +9,7 @@
 {% block content %}
     <div class="bg">
         <main role="main" class="container main-box">
-            <div class="jumbotron" style="padding: 2rem;">
+            <div class="p-3 mb-2 bg-light text-dark">
                 <hr>
                 <div style="width: 50%; margin-left: auto; margin-right: auto;">
                     <table>
@@ -72,12 +72,14 @@
 
     <script>
         {% for source_id, s_info in sources_labeling_stat.items() %}
-            var labelProgressPercentage = {{ s_info['n_artifacts_labeled'] }}*100 /{{ s_info['n_artifacts_to_be_labeled'] }};
+            var labelProgressPercentage = {{ s_info['n_artifacts_labeled'] }}*
+            100 /{{ s_info['n_artifacts_to_be_labeled'] }};
             labelProgressPercentage = Math.ceil(labelProgressPercentage);
             document.getElementById("source-pb-{{ source_id }}-label").style.width = labelProgressPercentage + '%';
             document.getElementById("source-pb-{{ source_id }}-label").innerHTML = labelProgressPercentage + '%';
 
-            var reviewingProgressPercentage = {{ s_info['n_artifacts_reviewed'] }}*100 /{{ s_info['n_artifacts_to_be_labeled'] }};
+            var reviewingProgressPercentage = {{ s_info['n_artifacts_reviewed'] }}*
+            100 /{{ s_info['n_artifacts_to_be_labeled'] }};
             reviewingProgressPercentage = Math.ceil(reviewingProgressPercentage);
             document.getElementById("source-pb-{{ source_id }}-review").style.width = reviewingProgressPercentage + '%';
             document.getElementById("source-pb-{{ source_id }}-review").innerHTML = reviewingProgressPercentage + '%';
