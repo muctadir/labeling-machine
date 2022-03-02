@@ -1,1 +1,175 @@
 {% extends "common_pages/common_layout.html" %}
+
+{% block content %}
+    <br>
+    <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#themeInfoModal"
+            data-bs-whatever="@mdo">Add New
+    </button>
+    <a href="/theme_management/merge_theme" class="btn btn-secondary">Merge Themes</a>
+    <div class="clearfix"></div>
+    <table class="table table-hover table-bordered" style="text-align: left">
+        <thead>
+        <tr>
+            <th scope="col">#</th>
+            <th scope="col">Theme name</th>
+            <th scope="col">Description</th>
+            <th scope="col">Label Count</th>
+            <th scope="col">Operations</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for theme in themes %}
+            <tr>
+                <th scope="row">{{ theme.id }}</th>
+                <td>{{ theme.theme }}</td>
+                <td>{{ theme.theme_description }}</td>
+                <td>{{ theme.labels | length }}</td>
+                <td>
+                    <div class="btn-group" role="group">
+                        <button type="button" class="btn btn-warning" data-bs-toggle="modal"
+                                data-bs-target="#themeInfoModal"
+                                data-bs-id="{{ theme.id }}" data-bs-theme="{{ theme.theme }}"
+                                data-bs-description="{{ theme.theme_description }}">Edit
+                        </button>
+                        <button type="button" class="btn btn-danger" data-bs-toggle="modal"
+                                data-bs-target="#themeDeleteModal" data-bs-id="{{ theme.id }}"
+                                data-bs-theme="{{ theme.theme }}">Delete
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    {# theme add or update modal#}
+    <div class="modal fade" id="themeInfoModal" tabindex="-1" aria-labelledby="themeInfoModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="themeInfoModalLabel">Theme Information</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-info" role="alert" hidden id="themeMessageHolder">
+                    </div>
+                    <form>
+                        <div class="mb-3" hidden>
+                            <label for="themeName" class="col-form-label">id:</label>
+                            <input type="text" class="form-control" id="themeId">
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="themeName" class="col-form-label">Theme:</label>
+                            <input type="text" class="form-control" id="themeName">
+                        </div>
+                        <div class="mb-3">
+                            <label for="themeDescription" class="col-form-label">Theme Description:</label>
+                            <textarea class="form-control" id="themeDescription"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" id="saveTheme">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {#theme delete modal#}
+    <div class="modal fade" id="themeDeleteModal" tabindex="-1" aria-labelledby="themeDeleteModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="themeDeleteModalLabel">Confirm delete theme?</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-info" role="alert" hidden id="themeDeleteMessageHolder">
+                    </div>
+                    <div id="deleteDialog"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-danger" id="deleteTheme">Delete</button>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+
+
+{% block scriptsStuff %}
+
+    <script>
+        $(function () {
+            let labelInfoModal = document.getElementById('labelInfoModal');
+            labelInfoModal.addEventListener('show.bs.modal', function (event) {
+                // Hide alert
+                $('#labelMessageHolder').attr('hidden', 'true');
+
+                // Button that triggered the modal
+                let button = event.relatedTarget;
+                // Extract info from data-bs-* attributes
+                let id = button.getAttribute('data-bs-id');
+                let label = button.getAttribute('data-bs-label');
+                let description = button.getAttribute('data-bs-description');
+
+                // Update the modal's content.
+                let modalTitle = labelInfoModal.querySelector('.modal-title');
+                modalTitle.textContent = label ? "Edit Label" : "New Label";
+
+                $('#labelId').val(id);
+                $('#labelName').val(label);
+                $('#labelDescription').val(description);
+            });
+
+            $('#saveLabel').click(function () {
+                let id = $('#labelId').val();
+                let label = $('#labelName').val();
+                let description = $('#labelDescription').val();
+                $.post('/label_management/create_or_update_label',
+                    {'id': id, 'label': label, 'description': description}, function (res) {
+                        $('#labelMessageHolder').text(res.status);
+                        location.reload();
+                    })
+                    .fail(function (res) {
+                        $('#labelMessageHolder').text(res.responseJSON.status);
+                    })
+                    .always(function () {
+                        $('#labelMessageHolder').removeAttr('hidden');
+                    });
+            });
+
+
+            let deleteThemeModal = document.getElementById('themeDeleteModal');
+            deleteThemeModal.addEventListener('show.bs.modal', function (event) {
+                $('#themeDeleteMessageHolder').attr('hidden', 'true');
+                let button = event.relatedTarget;
+                let id = button.getAttribute('data-bs-id');
+                let label = button.getAttribute('data-bs-theme');
+                $('#deleteDialog').text(`(id: ${id}) ${label}`);
+                $('#deleteLabel').attr('data-bs-id', id);
+            });
+
+            $('#deleteLabel').click(function (event) {
+                let id = event.currentTarget.getAttribute('data-bs-id');
+                $.ajax({
+                    url: `/theme_management/delete_theme/${id}`,
+                    type: 'DELETE'
+                }).done(function (res) {
+                    $('#labelDeleteMessageHolder').text(res.status);
+                    location.reload();
+                }).fail(function (res) {
+                    $('#labelDeleteMessageHolder').text(res.responseJSON.status);
+                }).always(function () {
+                    $('#labelDeleteMessageHolder').removeAttr('hidden');
+                });
+            });
+        });
+    </script>
+
+{% endblock %}

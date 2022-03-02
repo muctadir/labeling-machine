@@ -145,6 +145,7 @@
 
             let deleteLabelModal = document.getElementById('labelDeleteModal');
             deleteLabelModal.addEventListener('show.bs.modal', function (event) {
+                $('#labelDeleteMessageHolder').attr('hidden', 'true');
                 let button = event.relatedTarget;
                 let id = button.getAttribute('data-bs-id');
                 let label = button.getAttribute('data-bs-label');
@@ -153,7 +154,6 @@
             });
 
             $('#deleteLabel').click(function (event) {
-                $('#labelDeleteMessageHolder').attr('hidden', 'true');
                 let id = event.currentTarget.getAttribute('data-bs-id');
                 $.ajax({
                     url: `/label_management/delete_label/${id}`,
