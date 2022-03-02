@@ -1,4 +1,6 @@
-from sqlalchemy import select, delete, update, distinct
+from typing import List
+
+from sqlalchemy import select, delete, update, distinct, null
 from sqlalchemy.sql.functions import count
 
 from src import db
@@ -6,11 +8,11 @@ from src.database.models import LabelingData, ArtifactLabelRelation, Artifact
 from src.helper.tools_common import string_none_or_empty
 
 
-def get_label_by_id(lbl_id: int):
+def get_label_by_id(lbl_id: int) -> LabelingData:
     return db.session.execute(select(LabelingData).where(LabelingData.id == lbl_id)).scalar()
 
 
-def get_all_labels():
+def get_all_labels() -> List[LabelingData]:
     return [a for a, in db.session.execute(select(LabelingData).order_by(LabelingData.labeling)).all()]
 
 
@@ -53,7 +55,7 @@ def update_artifact_label(artifact_id: int, old_label_id: int, new_label_txt: st
     db.session.commit()
 
 
-def get_or_create_label_with_text(label_txt: str, label_description: str, creator: str):
+def get_or_create_label_with_text(label_txt: str, label_description: str, creator: str) -> LabelingData:
     lbl = get_label(label_txt) or LabelingData(
         labeling=label_txt, created_by=creator, label_description=label_description)
     db.session.add(lbl)
@@ -62,13 +64,13 @@ def get_or_create_label_with_text(label_txt: str, label_description: str, creato
     return lbl
 
 
-def get_label(label_txt):
+def get_label(label_txt) -> LabelingData:
     return db.session.execute(select(LabelingData).where(
         LabelingData.labeling == label_txt)).scalar()
 
 
 def label_artifact(artifact_id: int, labeling_data: str, label_description: str, remark: str, duration_sec: int,
-                   creator: str):
+                   creator: str) -> str:
     lbl = get_or_create_label_with_text(labeling_data, label_description, creator)
     labeled_artifact = db.session.execute(
         select(ArtifactLabelRelation).where(ArtifactLabelRelation.artifact_id == artifact_id,
@@ -100,4 +102,7 @@ def get_n_labeled_artifact_per_user():
         ArtifactLabelRelation.created_by).all()
     return {user: lab_art for user, lab_art in result}
 
-# todo: get all labels without theme
+
+def get_labels_without_theme() -> List[LabelingData]:
+    return [lbl for lbl, in db.session.execute(
+        select(LabelingData).where(LabelingData.theme_id == null()).order_by(LabelingData.labeling)).all()]

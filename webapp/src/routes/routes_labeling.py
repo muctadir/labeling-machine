@@ -248,7 +248,7 @@ def create_or_update_label():
         return jsonify({"status": "Empty arguments"}), 400
 
     try:
-        lbl = get_label_by_id(int(lid))
+        lbl = get_label_by_id(int(lid)) if not string_none_or_empty(lid) else None
         get_or_create_label_with_text(new_label_name, new_description, who_is_signed_in()) if lbl is None \
             else update_label(lid, new_label_name, new_description)
         status = 'success'
