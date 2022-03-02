@@ -61,4 +61,10 @@ def delete_theme(theme_id: int):
 @app.route('/theme_management/edit_theme/<theme_id>', methods=['GET'])
 @login_required
 def update_theme_view(theme_id: int):
-    pass
+    return '', 404
+
+
+@app.route('/theme_management/merge_theme', methods=['GET'])
+@login_required
+def merge_theme_view():
+    return '', 404
