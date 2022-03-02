@@ -1,0 +1,56 @@
+{% extends "common_pages/common_layout.html" %}
+{% block content %}
+    <div class="container">
+        <form>
+            <div class="mb-3">
+                <label for="themeId" class="col-form-label">Theme Id:</label>
+                <input type="text" class="form-control" id="themeId" disabled readonly value="{{ theme.id }}">
+            </div>
+
+            <div class="mb-3">
+                <label for="themeName" class="col-form-label">Theme:</label>
+                <input type="text" class="form-control" id="themeName" value="{{ theme.theme }}" disabled readonly>
+            </div>
+            <div class="mb-3">
+                <label for="themeDescription" class="col-form-label">Theme Description:</label>
+                <textarea class="form-control" id="themeDescription" disabled
+                          readonly>{{ theme.theme_description }}</textarea>
+            </div>
+            <div class="mb-3">
+                <label for="themeLabels" class="col-form-label">Theme Labels:</label>
+                <div class="accordion" id="accordionExample">
+                    {% for label in theme.labels %}
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="heading{{ label.id }}">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                        data-bs-target="#collapse{{ label.id }}" aria-controls="collapse{{ label.id }}">
+                                    {{ label.labeling }}
+                                </button>
+                            </h2>
+                            <div id="collapse{{ label.id }}" class="accordion-collapse collapse"
+                                 aria-labelledby="heading{{ label.id }}" data-bs-parent="#accordionExample">
+                                <div class="accordion-body">
+                                    <p><strong>Description: {{ label.label_description }}</strong></p>
+
+                                    <ul class="list-group">
+                                        {% for ar in label.artifacts_relation %}
+                                            <div class="list-group-item">
+                                                <small>ID#{{ ar.artifact.id }} | Remark:{{ ar.remark }} | Identifier: {{ ar.artifact.identifier }}</small>
+                                                <p class="mb-1">{{ ar.artifact.text }}</p>
+                                            </div>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </form>
+        <div class="btn-">
+            <a href="/theme_management" class="btn btn-secondary">Close</a>
+            <a href="/theme_management/edit_theme/{{ theme.id }}" class="btn btn-danger">Edit</a>
+
+        </div>
+    </div>
+{% endblock %}

@@ -24,6 +24,7 @@
                     <td>{{ theme.labels | length }}</td>
                     <td>
                         <div class="btn-group" role="group">
+                            <a href="/theme_management/view_theme/{{ theme.id }}" class="btn btn-success">View</a>
                             <button type="button" class="btn btn-warning" data-bs-toggle="modal"
                                     data-bs-target="#themeInfoModal"
                                     data-bs-id="{{ theme.id }}" data-bs-theme="{{ theme.theme }}"

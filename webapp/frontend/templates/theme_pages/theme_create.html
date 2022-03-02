@@ -65,7 +65,9 @@
                     theme: name, description: description, label_ids: labelIds
                 }, function(resp) {
                     ShowNotification(resp.status, 'success');
-                  console.log(resp);
+                    setTimeout(function () {
+                        location.href = '/theme_management';
+                    }, 1000);
                 })
                 .fail( function(resp) {
                   ShowNotification(resp.responseJSON.status, 'danger');

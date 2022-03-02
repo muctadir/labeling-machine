@@ -15,6 +15,13 @@ def theme_management_view():
     return render_template('theme_pages/theme_management.html', themes=get_all_themes())
 
 
+@app.route('/theme_management/view_theme/<theme_id>', methods=['GET'])
+@login_required
+def view_theme_details(theme_id: int):
+    theme = get_theme_by_id(theme_id)
+    return render_template('theme_pages/theme_view.html', theme=theme)
+
+
 @app.route('/theme_management/create_theme', methods=['GET'])
 @login_required
 def theme_create_view():
@@ -49,3 +56,9 @@ def delete_theme(theme_id: int):
         return jsonify({'status': str(e)}), 400
 
     return jsonify({'status': 'deleted successfully'})
+
+
+@app.route('/theme_management/edit_theme/<theme_id>', methods=['GET'])
+@login_required
+def update_theme_view(theme_id: int):
+    pass
