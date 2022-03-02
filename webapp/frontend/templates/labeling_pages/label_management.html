@@ -1,46 +1,47 @@
 {% extends "common_pages/common_layout.html" %}
 
 {% block content %}
-    <br>
-    <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#labelInfoModal"
-            data-bs-whatever="@mdo">Add New
-    </button>
-    <a href="/label_management/merge_label" class="btn btn-secondary">Merge Labels</a>
-    <div class="clearfix"></div>
-    <table class="table table-hover table-bordered" style="text-align: left">
-        <thead>
-        <tr>
-            <th scope="col">#</th>
-            <th scope="col">Label name</th>
-            <th scope="col">Description</th>
-            <th scope="col">Artifact Count</th>
-            <th scope="col">Operations</th>
-        </tr>
-        </thead>
-        <tbody>
-        {% for lab in all_labels %}
+    <div class="m-2 pt-1">
+        <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#labelInfoModal"
+                data-bs-whatever="@mdo">Add New
+        </button>
+        <a href="/label_management/merge_label" class="btn btn-secondary">Merge Labels</a>
+        <div class="pt-2"></div>
+        <table class="table table-hover table-bordered" style="text-align: left">
+            <thead>
             <tr>
-                <th scope="row">{{ lab.id }}</th>
-                <td>{{ lab.labeling }}</td>
-                <td>{{ lab.label_description }}</td>
-                <td>{{ lab.artifacts_relation | length }}</td>
-                <td>
-                    <div class="btn-group" role="group" aria-label="Basic example">
-                        <button type="button" class="btn btn-warning" data-bs-toggle="modal"
-                                data-bs-target="#labelInfoModal"
-                                data-bs-id="{{ lab.id }}" data-bs-label="{{ lab.labeling }}"
-                                data-bs-description="{{ lab.label_description }}">Edit
-                        </button>
-                        <button type="button" class="btn btn-danger" data-bs-toggle="modal"
-                                data-bs-target="#labelDeleteModal" data-bs-id="{{ lab.id }}"
-                                data-bs-label="{{ lab.labeling }}">Delete
-                        </button>
-                    </div>
-                </td>
+                <th scope="col">#</th>
+                <th scope="col">Label name</th>
+                <th scope="col">Description</th>
+                <th scope="col">Artifact Count</th>
+                <th scope="col">Operations</th>
             </tr>
-        {% endfor %}
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+            {% for lab in all_labels %}
+                <tr>
+                    <th scope="row">{{ lab.id }}</th>
+                    <td>{{ lab.labeling }}</td>
+                    <td>{{ lab.label_description }}</td>
+                    <td>{{ lab.artifacts_relation | length }}</td>
+                    <td>
+                        <div class="btn-group" role="group" aria-label="Basic example">
+                            <button type="button" class="btn btn-warning" data-bs-toggle="modal"
+                                    data-bs-target="#labelInfoModal"
+                                    data-bs-id="{{ lab.id }}" data-bs-label="{{ lab.labeling }}"
+                                    data-bs-description="{{ lab.label_description }}">Edit
+                            </button>
+                            <button type="button" class="btn btn-danger" data-bs-toggle="modal"
+                                    data-bs-target="#labelDeleteModal" data-bs-id="{{ lab.id }}"
+                                    data-bs-label="{{ lab.labeling }}">Delete
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
 
     {# label add or update modal#}
     <div class="modal fade" id="labelInfoModal" tabindex="-1" aria-labelledby="labelInfoModalLabel" aria-hidden="true">

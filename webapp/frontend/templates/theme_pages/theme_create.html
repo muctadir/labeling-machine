@@ -1,1 +1,30 @@
 {% extends "common_pages/common_layout.html" %}
+
+{% block content %}
+    <div class="container">
+        <form>
+            <div class="mb-3" hidden>
+                <label for="themeName" class="col-form-label">id:</label>
+                <input type="text" class="form-control" id="themeId">
+            </div>
+
+            <div class="mb-3">
+                <label for="themeName" class="col-form-label">Theme:</label>
+                <input type="text" class="form-control" id="themeName">
+            </div>
+            <div class="mb-3">
+                <label for="themeDescription" class="col-form-label">Theme Description:</label>
+                <textarea class="form-control" id="themeDescription"></textarea>
+            </div>
+            <div class="mb-3">
+            </div>
+        </form>
+        <div class="btn-">
+            <a href="/theme_management" class="btn btn-secondary">Close</a>
+            <button type="button" class="btn btn-primary" id="saveTheme">Save</button>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scriptsStuff %}
+{% endblock %}
