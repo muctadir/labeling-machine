@@ -1,6 +1,6 @@
 from typing import List
 
-from sqlalchemy import select, insert
+from sqlalchemy import select, insert, delete
 
 from src import db
 from src.database.models import Theme, LabelingData
@@ -22,8 +22,23 @@ def create_theme(name: str, description: str, label_ids: List[int], creator: str
     if get_theme_by_name(name) is not None:
         raise ValueError('Theme with this name exists')
 
-    labels = db.session.execute(select(LabelingData).where(LabelingData.id in label_ids)).all()
+    labels = [lbl for lbl, in db.session.execute(select(LabelingData).where(LabelingData.id.in_(label_ids))).all()]
+    if labels is None or len(labels) == 0:
+        raise ValueError('No valid label selected')
+
     theme = Theme(theme=name, theme_description=description, labels=labels, created_by=creator)
     db.session.add(theme)
     db.session.commit()
     return theme
+
+
+def remove_theme(tid: int):
+    theme = get_theme_by_id(tid)
+    if theme is None:
+        raise ValueError('theme does not exist')
+
+    if theme.labels is not None and len(theme.labels) > 0:
+        raise ValueError('theme has labels')
+
+    db.session.execute(delete(Theme).where(Theme.id == tid))
+    db.session.commit()

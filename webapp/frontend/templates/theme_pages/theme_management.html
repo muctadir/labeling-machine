@@ -71,45 +71,6 @@
 
     <script>
         $(function () {
-            let labelInfoModal = document.getElementById('labelInfoModal');
-            labelInfoModal.addEventListener('show.bs.modal', function (event) {
-                // Hide alert
-                $('#labelMessageHolder').attr('hidden', 'true');
-
-                // Button that triggered the modal
-                let button = event.relatedTarget;
-                // Extract info from data-bs-* attributes
-                let id = button.getAttribute('data-bs-id');
-                let label = button.getAttribute('data-bs-label');
-                let description = button.getAttribute('data-bs-description');
-
-                // Update the modal's content.
-                let modalTitle = labelInfoModal.querySelector('.modal-title');
-                modalTitle.textContent = label ? "Edit Label" : "New Label";
-
-                $('#labelId').val(id);
-                $('#labelName').val(label);
-                $('#labelDescription').val(description);
-            });
-
-            $('#saveLabel').click(function () {
-                let id = $('#labelId').val();
-                let label = $('#labelName').val();
-                let description = $('#labelDescription').val();
-                $.post('/label_management/create_or_update_label',
-                    {'id': id, 'label': label, 'description': description}, function (res) {
-                        $('#labelMessageHolder').text(res.status);
-                        location.reload();
-                    })
-                    .fail(function (res) {
-                        $('#labelMessageHolder').text(res.responseJSON.status);
-                    })
-                    .always(function () {
-                        $('#labelMessageHolder').removeAttr('hidden');
-                    });
-            });
-
-
             let deleteThemeModal = document.getElementById('themeDeleteModal');
             deleteThemeModal.addEventListener('show.bs.modal', function (event) {
                 $('#themeDeleteMessageHolder').attr('hidden', 'true');
@@ -117,21 +78,23 @@
                 let id = button.getAttribute('data-bs-id');
                 let label = button.getAttribute('data-bs-theme');
                 $('#deleteDialog').text(`(id: ${id}) ${label}`);
-                $('#deleteLabel').attr('data-bs-id', id);
+                $('#deleteTheme').attr('data-bs-id', id);
             });
 
-            $('#deleteLabel').click(function (event) {
+            $('#deleteTheme').click(function (event) {
                 let id = event.currentTarget.getAttribute('data-bs-id');
                 $.ajax({
                     url: `/theme_management/delete_theme/${id}`,
                     type: 'DELETE'
                 }).done(function (res) {
-                    $('#labelDeleteMessageHolder').text(res.status);
-                    location.reload();
+                    $('#themeDeleteMessageHolder').text(res.status);
+                    setTimeout(function () {
+                        location.reload();
+                    }, 1000);
                 }).fail(function (res) {
-                    $('#labelDeleteMessageHolder').text(res.responseJSON.status);
+                    $('#themeDeleteMessageHolder').text(res.responseJSON.status);
                 }).always(function () {
-                    $('#labelDeleteMessageHolder').removeAttr('hidden');
+                    $('#themeDeleteMessageHolder').removeAttr('hidden');
                 });
             });
         });
