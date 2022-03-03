@@ -31,7 +31,7 @@ def create_theme(name: str, description: str, label_ids: List[int], creator: str
 
 
 def update_theme(tid: int, name: str, description: str, label_ids: List[int], creator: str) -> Theme:
-    same_name_theme = db.session.execute(select(Theme).where(Theme.theme == name).where(not (Theme.id == tid))).all()
+    same_name_theme = db.session.execute(select(Theme).where(Theme.theme == name).where(Theme.id != tid)).all()
     if same_name_theme is not None and len(same_name_theme) > 0:
         raise ValueError('theme with same name exists')
 
