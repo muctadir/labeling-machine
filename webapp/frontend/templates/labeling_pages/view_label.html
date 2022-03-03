@@ -1,0 +1,50 @@
+{% extends "common_pages/common_layout.html" %}
+
+{% block headerStuff %}
+{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <form>
+            <div class="mb-3">
+                <label for="labelId" class="col-form-label">Label Id:</label>
+                <input type="text" class="form-control" disabled id="labelId" readonly value="{{ label.id }}">
+            </div>
+
+            <div class="mb-3">
+                <label for="labelName" class="col-form-label">Label:</label>
+                <input type="text" class="form-control" value="{{ label.labeling }}" disabled readonly id="labelName">
+            </div>
+            <div class="mb-3">
+                <label for="labelName" class="col-form-label">Theme:</label>
+                <div class="hstack gap-1">
+                    <input type="text" class="form-control" value="{{ label.theme.theme }}" disabled readonly
+                           id="labelName">
+                    {% if label.theme is not none %}
+                        <a href="/theme_management/view_theme/{{ label.theme.id }}"
+                           class="btn btn-success">View</a></div>
+                    {% endif %}
+            </div>
+            <div class="mb-3">
+                <label for="labelDescription" class="col-form-label">Label Description:</label>
+                <textarea class="form-control" disabled
+                          readonly>{{ label.label_description }}</textarea>
+            </div>
+            <div class="mb-3">
+                <label for="labelLabels" class="col-form-label"> Artifacts:</label>
+                <div class="list-group" id="artifact_container">
+                    {% for ar in label.artifacts_relation %}
+                        <div class="list-group-item">
+                            <small>ID#{{ ar.artifact.id }} | Labeler: {{ ar.created_by }} |
+                                Remark: {{ ar.remark }}</small>
+                            <p class="mb-1">{{ ar.artifact.text }}</p>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </form>
+        <div class="btn-">
+            <a href="/label_management" class="btn btn-secondary">Close</a>
+        </div>
+    </div>
+{% endblock %}

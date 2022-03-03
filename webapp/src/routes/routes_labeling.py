@@ -309,8 +309,8 @@ def merge_labels():
     return jsonify({'status': f'merged labels: {", ".join(old_label_names)}'})
 
 
-@app.route("/labels", methods=['GET'])
+@app.route("/label_management/view_label/<label_id>", methods=['GET'])
 @login_required
-def labels():
-    all_labels = LabelingData.query.with_entities(LabelingData.labeling, LabelingData.id).all()
-    return render_template('common_pages/labels.html', all_labels=all_labels)
+def view_label(label_id: int):
+    lbl = get_label_by_id(label_id)
+    return render_template('labeling_pages/view_label.html', label=lbl)

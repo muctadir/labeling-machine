@@ -85,4 +85,4 @@ def update_theme_put(theme_id: int):
 @app.route('/theme_management/merge_theme', methods=['GET'])
 @login_required
 def merge_theme_view():
-    return '', 404
+    return 'NOT IMPLEMENTED', 404
