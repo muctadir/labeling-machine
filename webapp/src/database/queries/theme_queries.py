@@ -41,7 +41,7 @@ def update_theme(tid: int, name: str, description: str, label_ids: List[int], cr
     old_theme.created_by = creator
     old_theme.labels = [lbl for lbl, in
                         db.session.execute(select(LabelingData).where(LabelingData.id.in_(label_ids))).all()] or []
-
+    old_theme.update_count += 1
     db.session.add(old_theme)
     db.session.commit()
     return old_theme
