@@ -1,11 +1,9 @@
-from typing import List
-
 from flask import render_template, request, jsonify
 from flask_login import login_required
 
 from src import app
-from src.database.queries.label_queries import get_all_labels, get_labels_without_theme
-from src.database.queries.theme_queries import get_all_themes, create_theme, get_theme_by_id, remove_theme
+from src.database.queries.label_queries import get_labels_without_theme
+from src.database.queries.theme_queries import get_all_themes, create_theme, get_theme_by_id, remove_theme, update_theme
 from src.helper.tools_common import string_none_or_empty, who_is_signed_in
 
 
@@ -61,7 +59,27 @@ def delete_theme(theme_id: int):
 @app.route('/theme_management/edit_theme/<theme_id>', methods=['GET'])
 @login_required
 def update_theme_view(theme_id: int):
-    return '', 404
+    theme = get_theme_by_id(theme_id)
+    labels_without_theme = get_labels_without_theme()
+    return render_template('theme_pages/theme_edit.html', theme=theme, labels_without_theme=labels_without_theme)
+
+
+@app.route('/theme_management/update_theme/<theme_id>', methods=['PUT'])
+@login_required
+def update_theme_put(theme_id: int):
+    name = request.form.get('name', '', str)
+    description = request.form.get('description', '', str)
+    label_ids = request.form.getlist('label_ids[]', int)
+
+    if string_none_or_empty(name) or string_none_or_empty(description) or theme_id is None:
+        return jsonify({'status': 'empty arguments'}), 400
+
+    try:
+        update_theme(theme_id, name, description, label_ids, who_is_signed_in())
+    except (ValueError, Exception) as e:
+        return jsonify({'status': str(e)}), 400
+
+    return jsonify({'status': 'success'})
 
 
 @app.route('/theme_management/merge_theme', methods=['GET'])

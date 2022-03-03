@@ -1,0 +1,97 @@
+{% extends "common_pages/common_layout.html" %}
+
+{% block content %}
+    <div class="container">
+        <form>
+            <div class="mb-3" hidden>
+                <label for="themeId" class="col-form-label">id:</label>
+                <input type="text" class="form-control" id="themeId" value="{{ theme.id }}">
+            </div>
+            <div class="mb-3">
+                <label for="themeName" class="col-form-label">Theme:</label>
+                <input type="text" class="form-control" id="themeName" value="{{ theme.theme }}">
+            </div>
+            <div class="mb-3">
+                <label for="themeDescription" class="col-form-label">Theme Description:</label>
+                <textarea class="form-control" id="themeDescription">{{ theme.theme_description }}</textarea>
+            </div>
+            <div class="mb-3">
+                <label for="themeLabels" class="col-form-label">Theme Labels:</label>
+                <select class="form-select" multiple size="20" id="themeLabels">
+                    {% for label in theme.labels %}
+                        <option selected value="{{ label.id }}">{{ label.labeling }}</option>
+                    {% endfor %}
+                    {% for label in labels_without_theme %}
+                        <option value="{{ label.id }}">{{ label.labeling }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="mb-3" id="labelInfoPane" >
+                <label for="themeLabels" class="col-form-label">Selected Labels:</label>
+                <ul class="list-group">
+                    {% for label in theme.labels %}
+                        <li class="list-group-item" id="labelDescription{{ label.id }}">
+                            <b>{{ label.labeling }}:</b> {{ label.label_description }}
+                        </li>
+                    {% endfor %}
+                    {% for label in labels_without_theme %}
+                        <li class="list-group-item" id="labelDescription{{ label.id }}" style="display: none">
+                            <b>{{ label.labeling }}:</b> {{ label.label_description }}
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </form>
+        <div class="btn-">
+            <a href="/theme_management" class="btn btn-secondary">Close</a>
+            <button type="button" class="btn btn-primary" id="saveTheme">Update</button>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scriptsStuff %}
+    <script src="{{ url_for('static', filename='js/notification.js') }}"></script>
+
+    <script>
+        function update_selected_pane() {
+            $('#labelInfoPane').hide();
+            $('#labelInfoPane li').hide();
+            let elem = $('#themeLabels');
+            elem.val().forEach(function (item) {
+                $('#labelInfoPane').show();
+                $(`#labelDescription${item}`).show();
+            });
+        }
+
+        $(function () {
+            update_selected_pane();
+
+            $('#themeLabels').change(function (event) {
+                update_selected_pane();
+            });
+
+            $('#saveTheme').click(function () {
+                let id = $('#themeId').val();
+                let name = $('#themeName').val();
+                let description = $('#themeDescription').val();
+                let labelIds = $('#themeLabels').val();
+
+                $.ajax({
+                    url:`/theme_management/update_theme/${id}`,
+                    method:'PUT',
+                    data:{name:name, description:description, label_ids:labelIds},
+                    success:function(resp) {
+                        ShowNotification(resp.status, 'success');
+                        setTimeout(function () {
+                            location.href = '/theme_management';
+                        }, 1000);
+                    },
+                    error:function(resp) {
+                        ShowNotification(resp.responseJSON.status, 'danger');
+                    }
+                });
+
+            });
+        });
+    </script>
+{% endblock %}
