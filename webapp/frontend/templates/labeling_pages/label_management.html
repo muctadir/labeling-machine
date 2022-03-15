@@ -26,6 +26,7 @@
                     <td>{{ lab.artifacts_relation | length }}</td>
                     <td>
                         <div class="btn-group" role="group" aria-label="Basic example">
+                            <a href="/label_management/view_label/{{ lab.id }}" class="btn btn-success">View</a>
                             <button type="button" class="btn btn-warning" data-bs-toggle="modal"
                                     data-bs-target="#labelInfoModal"
                                     data-bs-id="{{ lab.id }}" data-bs-label="{{ lab.labeling }}"

@@ -1,6 +1,6 @@
 from typing import List
 
-from sqlalchemy import select, insert, delete
+from sqlalchemy import select, delete
 
 from src import db
 from src.database.models import Theme, LabelingData
@@ -22,14 +22,29 @@ def create_theme(name: str, description: str, label_ids: List[int], creator: str
     if get_theme_by_name(name) is not None:
         raise ValueError('Theme with this name exists')
 
-    labels = [lbl for lbl, in db.session.execute(select(LabelingData).where(LabelingData.id.in_(label_ids))).all()]
-    if labels is None or len(labels) == 0:
-        raise ValueError('No valid label selected')
-
+    labels = [lbl for lbl, in
+              db.session.execute(select(LabelingData).where(LabelingData.id.in_(label_ids))).all()] or []
     theme = Theme(theme=name, theme_description=description, labels=labels, created_by=creator)
     db.session.add(theme)
     db.session.commit()
     return theme
+
+
+def update_theme(tid: int, name: str, description: str, label_ids: List[int], creator: str) -> Theme:
+    same_name_theme = db.session.execute(select(Theme).where(Theme.theme == name).where(Theme.id != tid)).all()
+    if same_name_theme is not None and len(same_name_theme) > 0:
+        raise ValueError('theme with same name exists')
+
+    old_theme = get_theme_by_id(tid)
+    old_theme.theme = name
+    old_theme.theme_description = description
+    old_theme.created_by = creator
+    old_theme.labels = [lbl for lbl, in
+                        db.session.execute(select(LabelingData).where(LabelingData.id.in_(label_ids))).all()] or []
+    old_theme.update_count += 1
+    db.session.add(old_theme)
+    db.session.commit()
+    return old_theme
 
 
 def remove_theme(tid: int):
