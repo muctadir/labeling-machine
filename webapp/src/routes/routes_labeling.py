@@ -140,28 +140,20 @@ def toggle_fp():
 @app.route("/label", methods=['POST'])
 @login_required
 def label():
-    if CURRENT_TASK['level'] != 0:  # We are not at Labeling phase anymore.
-        return jsonify('{ "error": "We are not labeling. Labeling data is in read-only mode." }'), 400
+    label_description = (request.form.get('label_description', type=str) or '').strip()
+    remark = (request.form.get('remark', type=str) or '').strip()
+    duration_sec = request.form.get('duration', type=int) or 0
+    artifact_id = request.form.get('artifact_id', type=int)
+    labeling_data = (request.form.get('labeling_data', type=str) or '').strip()
 
-    if request.method == 'POST':
-        if string_none_or_empty(request.form['artifact_id']) or string_none_or_empty(
-                request.form['duration']) or string_none_or_empty(request.form['labeling_data']):
-            return jsonify('{ "status": "Empty arguments" }'), 400
+    if artifact_id is None or string_none_or_empty(labeling_data) or string_none_or_empty(label_description):
+        return jsonify('{ "status": "Empty arguments" }'), 400
 
-        duration_sec = int(request.form['duration'])
-        if duration_sec <= 1:
-            return jsonify('{ "status": "Too fast?" }')
+    if duration_sec <= 1:
+        return jsonify('{ "status": "Too fast?" }')
 
-        labeling_data = request.form['labeling_data'].strip()
-        remark = request.form['remark'].strip() if not string_none_or_empty(request.form['remark']) else None
-        artifact_id = int(request.form['artifact_id'])
-        label_description = (request.form['label_description'] or '').strip()
-
-        status = label_artifact(artifact_id, labeling_data, label_description, remark, duration_sec, who_is_signed_in())
-        return jsonify(f'{{ "status": "{status}" }}')
-
-    else:
-        return "Not POST!", 400
+    status = label_artifact(artifact_id, labeling_data, label_description, remark, duration_sec, who_is_signed_in())
+    return jsonify({"status": status})
 
 
 @app.route('/update_label_for_artifact/<artifact_id>/<label_id>', methods=['PUT'])
@@ -203,21 +195,20 @@ def manual_label_view():
 @app.route('/manual_label', methods=['GET', 'POST'])
 @login_required
 def manual_label_post():
-    if string_none_or_empty(request.form['artifact_txt']) or string_none_or_empty(
-            request.form['duration']) or string_none_or_empty(request.form['labeling_data']) or string_none_or_empty(
-        request.form['parent_artifact_id']):
+    labeling_data = (request.form.get('labeling_data', type=str) or '').strip()
+    label_description = (request.form.get('label_description', type=str) or '').strip()
+    remark = (request.form.get('remark', type=str) or '').strip()
+    duration_sec = request.form.get('duration', type=int) or 0
+    artifact_txt = (request.form.get('artifact_txt', type=str) or '').strip()
+    parent_artifact_id = request.form.get('parent_artifact_id', type=int)
+    if string_none_or_empty(artifact_txt) or string_none_or_empty(labeling_data):
         return jsonify({"status": "Empty arguments"}), 400
 
-    parent_artifact = get_artifact_by_id(int(request.form['parent_artifact_id'].strip()))
+    parent_artifact = get_artifact_by_id(parent_artifact_id)
     if parent_artifact is None:
         return jsonify({"status": "invalid parent artifact"}), 400
 
-    labeling_data = request.form['labeling_data'].strip()
-    label_description = (request.form['label_description'] or '').strip()
-    remark = request.form['remark'].strip() if not string_none_or_empty(request.form['remark']) else None
-    duration_sec = int(request.form['duration'])
-    artifact_id = add_artifacts([request.form['artifact_txt'].strip()], parent_artifact.identifier, who_is_signed_in(),
-                                True)
+    artifact_id = add_artifacts([artifact_txt], parent_artifact.identifier, who_is_signed_in(), True)
     status = label_artifact(artifact_id[0], labeling_data, label_description, remark, duration_sec, who_is_signed_in())
     return jsonify({"status": f"{status}"})
 
@@ -241,14 +232,14 @@ def label_management_view():
 @app.route('/label_management/create_or_update_label', methods=['POST'])
 @login_required
 def create_or_update_label():
-    lid = request.form['id']
-    new_label_name = request.form['label']
-    new_description = request.form['description']
+    lid = request.form.get('id', type=int)
+    new_label_name = (request.form.get('label', type=str) or '').strip()
+    new_description = (request.form.get('description', type=str) or '').strip()
     if string_none_or_empty(new_label_name) or string_none_or_empty(new_description):
         return jsonify({"status": "Empty arguments"}), 400
 
     try:
-        lbl = get_label_by_id(int(lid)) if not string_none_or_empty(lid) else None
+        lbl = get_label_by_id(lid)
         get_or_create_label_with_text(new_label_name, new_description, who_is_signed_in()) if lbl is None \
             else update_label(lid, new_label_name, new_description)
         status = 'success'

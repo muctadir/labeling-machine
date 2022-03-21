@@ -80,8 +80,7 @@
                 }
             ;
             {#let data = JSON.stringify(data_json);#}
-            $.post("/label", data_json, function (response, status) {
-                let response_json = $.parseJSON(response.toString())
+            $.post("/label", data_json, function (response_json, status) {
                 ShowNotification(response_json['status'], "success");
                 ChangeSkipToNext();
             }).fail(function (){
