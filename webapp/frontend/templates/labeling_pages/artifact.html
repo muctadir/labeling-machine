@@ -1,47 +1,41 @@
 {% extends "labeling_pages/labeling_layout.html" %}
 
 {% block navigation_bar %}
-    <div class="header">
-        <div style="">
-            <button class="btn btn-sm btn-outline-danger"
-                    type="submit"
-                    id="fpBtn"
-                    onclick="ToggleFlagBtn({{ artifact_id }})"
-                    title="This artifact is irrelevant to our aim"
-                    style="">Flag (?)
-            </button>
+    <div class="header row">
+        <div class="row">
+            <div class="col-6">
+                <button class="btn btn-sm btn-outline-danger"
+                        type="submit"
+                        id="fpBtn"
+                        onclick="ToggleFlagBtn({{ artifact_id }})"
+                        title="This artifact is irrelevant to our aim"
+                        style="">Flag (?)
+                </button>
 
-            <button class="btn btn-sm btn-outline-info"
-                    type="submit"
-                    id="interestingBtn"
-                    onclick="ToggleInterestingBtn({{ artifact_id }})"
-                    title="This artifact seems a good example to be discussed in the paper"
-                    style="">Interesting (?)
-            </button>
-        </div>
-        <div style="width: 25%">
-            <div style="text-align: center; font-size: small;">
-                {{ overall_labeling_status['n_artifacts_labeled'] }}
-                out of
-                {{ overall_labeling_status['n_artifacts_to_be_labeled'] }} |
-                <em>{{ overall_labeling_status['source_name'] }}</em>
+                <button class="btn btn-sm btn-outline-info"
+                        type="submit"
+                        id="interestingBtn"
+                        onclick="ToggleInterestingBtn({{ artifact_id }})"
+                        title="This artifact seems a good example to be discussed in the paper"
+                        style="">Interesting (?)
+                </button>
             </div>
-            <div class="progress">
-                <div id="top-progress-bar-status" class="progress-bar" role="progressbar" style="width: 0%;"
-                     aria-valuenow="0"
-                     aria-valuemin="0"
-                     aria-valuemax="100">
+            <div class="col-6">
+                <div style="text-align: center; font-size: small;">
+                    {{ overall_labeling_status['n_artifacts_labeled'] }}
+                    out of
+                    {{ overall_labeling_status['n_artifacts_to_be_labeled'] }} |
+                    <em>{{ overall_labeling_status['source_name'] }}</em>
+                </div>
+                <div class="progress">
+                    <div id="top-progress-bar-status" class="progress-bar" role="progressbar"
+                         aria-valuenow="0"
+                         aria-valuemin="0"
+                         aria-valuemax="100">
+                    </div>
                 </div>
             </div>
         </div>
-
-        <button class="btn btn-outline-success"
-                type="submit"
-                id="next-skip-btn"
-                onclick="skip_next_artifact()"
-                style="width: 15%"> Skip
-        </button>
-
     </div> <!--End of Header -->
 {% endblock %}
 
@@ -60,6 +54,12 @@
 
     </div>
 {% endblock %}
+
+{% block additional_label_action %}
+    <button class="btn btn-outline-danger" type="button" id="next-skip-btn" onclick="skip_next_artifact()"> Skip
+    </button>
+{% endblock %}
+
 
 {% block submit_script %}
     <script>
@@ -83,7 +83,7 @@
             $.post("/label", data_json, function (response_json, status) {
                 ShowNotification(response_json['status'], "success");
                 ChangeSkipToNext();
-            }).fail(function (){
+            }).fail(function () {
                 ShowNotification("Something went wrong!!!", 'danger');
             });
         }

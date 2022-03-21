@@ -39,6 +39,10 @@
                     <input type="text" id="label_description" class="form-control"
                            placeholder="Label Description">
                 </div>
+                <div class="col-auto">
+                    {% block additional_label_action %}
+                    {% endblock %}
+                </div>
             </div>
         </form>
     </div>
@@ -68,7 +72,7 @@
                 } else {
                     $("#submit_btn").removeAttr('disabled');
                     $.get('/get_label_description/' + $('#label_selector').val(), function (data) {
-                        $('#label_description').val(data);
+                        $('#label_description').val(data.description);
                     });
                 }
             });

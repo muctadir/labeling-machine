@@ -10,13 +10,11 @@ function get_elapsed_seconds() {
 }
 
 function skip_next_artifact() {
-    if (confirm('Are you sure?')) {
-        window.location.pathname = '/labeling';
-    }
+    window.location.pathname = '/labeling';
 }
 
 function ChangeSkipToNext() {
     $("#next-skip-btn").text("Next");
-    $("#next-skip-btn").removeClass("btn-outline-success");
-    $("#next-skip-btn").addClass("btn-success");
+    $("#next-skip-btn").removeClass("btn-outline-danger");
+    $("#next-skip-btn").addClass("btn-outline-warning");
 }
