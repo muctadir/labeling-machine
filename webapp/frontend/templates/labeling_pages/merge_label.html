@@ -8,7 +8,7 @@
                 <div class="bg-dark text-white">Choose labels to merge:</div>
                 <select class="form-select" multiple id="labelList" size="20">
                     {% for label in labels %}
-                        <option value="{{ label.labeling }}">{{ label.labeling }} </option>
+                        <option value="{{ label.id }}">{{ label.labeling }} </option>
                     {% endfor %}
                 </select>
                 <button type="button" class="btn btn-primary" data-bs-toggle="modal"
@@ -41,10 +41,6 @@
                             <label for="labelDescription" class="col-form-label">New Label Description:</label>
                             <textarea class="form-control" id="labelDescription"></textarea>
                         </div>
-                        <div class="mb-3">
-                            <label for="labelRemark" class="col-form-label">Remark:</label>
-                            <textarea class="form-control" id="labelRemark"></textarea>
-                        </div>
                         <div class="mb-3 bg-danger text-white">
                             Please note that, selected labels will be deleted and all artifacts will be relabeled with
                             the new label.
@@ -73,10 +69,10 @@
                 let infoPanContent = '';
                 $.when(...reqs).done(function (...res) {
                     res = selectedVals.length > 1 ? res : [res];
-                    selectedVals.forEach(function (val, i) {
+                    res.forEach(function (val, i) {
                         infoPanContent += `
-                        <div>Label Name: ${val}</div>
-                        <div>Label Description: ${res[i][0]}</div>
+                        <div><b>Name:</b> ${val[0].name}</div>
+                        <div><b>Description:</b> ${val[0].description}</div>
                         <br>`;
                     });
                     $('#selectedLabelPane').html(infoPanContent);
@@ -96,16 +92,20 @@
                     $('#labelMessageHolder').text('Please select at least 2 labels');
                 } else {
                     let data = {
-                        'labelNames': selectedLabels,
+                        'labelIds': selectedLabels,
                         'newLabel': $('#labelName').val(),
-                        'newLabelDescription': $('#labelDescription').val(),
-                        'remark': $('#labelRemark').val()
+                        'newLabelDescription': $('#labelDescription').val()
                     };
                     $.post('/label_management/merge_label', data, function (resp) {
-                        location.reload();
-                    }).always(function (resp) {
-                        $('#labelMessageHolder').removeAttr('hidden');
                         $('#labelMessageHolder').text(resp.status);
+                        setTimeout(function () {
+                            location.reload();
+                        }, 1000);
+                    }).fail(function (resp) {
+                            $('#labelMessageHolder').text(resp.responseJSON.status);
+                        }
+                    ).always(function (resp) {
+                        $('#labelMessageHolder').removeAttr('hidden');
                     });
                 }
 

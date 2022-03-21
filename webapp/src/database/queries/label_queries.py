@@ -44,9 +44,18 @@ def update_label(label_id: int, new_name: str, new_description: str):
     db.session.commit()
 
 
+def update_artiefact_label_only(artifact_id: int, old_label_id: int, new_label_id: int):
+    qry = update(ArtifactLabelRelation).where(
+        ArtifactLabelRelation.artifact_id == artifact_id, ArtifactLabelRelation.label_id == old_label_id).values(
+        label_id=new_label_id, label_update_count=ArtifactLabelRelation.label_update_count + 1)
+    db.session.execute(qry)
+    db.session.commit()
+
+
 def update_artifact_label(artifact_id: int, old_label_id: int, new_label_txt: str, label_remark: str,
                           creator: str):
     new_label_id = db.session.execute(select(LabelingData.id).where(LabelingData.labeling == new_label_txt)).scalar()
+
     qry = update(ArtifactLabelRelation).where(
         ArtifactLabelRelation.artifact_id == artifact_id, ArtifactLabelRelation.label_id == old_label_id).values(
         label_id=new_label_id, remark=label_remark, created_by=creator,
@@ -55,13 +64,19 @@ def update_artifact_label(artifact_id: int, old_label_id: int, new_label_txt: st
     db.session.commit()
 
 
-def get_or_create_label_with_text(label_txt: str, label_description: str, creator: str) -> LabelingData:
-    lbl = get_label(label_txt) or LabelingData(
-        labeling=label_txt, created_by=creator, label_description=label_description)
+def create_label_with_text(label_txt: str, label_description: str, creator: str) -> LabelingData:
+    existing = db.session.execute(select(LabelingData).where(LabelingData.labeling == label_txt)).all()
+    if existing is not None and len(existing) > 0:
+        raise ValueError('label already exists')
+
+    lbl = LabelingData(labeling=label_txt, created_by=creator, label_description=label_description)
     db.session.add(lbl)
-    db.session.flush()
     db.session.commit()
     return lbl
+
+
+def get_or_create_label_with_text(label_txt: str, label_description: str, creator: str) -> LabelingData:
+    return get_label(label_txt) or create_label_with_text()
 
 
 def get_label(label_txt) -> LabelingData:

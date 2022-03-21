@@ -1,5 +1,3 @@
-import itertools
-
 from flask import render_template, request, redirect, url_for, jsonify
 from flask_login import login_required
 from sqlalchemy import select
@@ -9,7 +7,8 @@ from src.database.models import Note, LabelingData
 from src.database.queries.artifact_queries import lock_artifact_by, add_artifacts, get_artifacts_with_label, \
     get_artifact_by_id
 from src.database.queries.label_queries import delete_label, update_artifact_label, \
-    label_artifact, get_label, get_or_create_label_with_text, update_label, get_all_labels, get_label_by_id
+    label_artifact, get_label, get_or_create_label_with_text, update_label, get_all_labels, get_label_by_id, \
+    create_label_with_text, update_artifact_label_only
 from src.helper.consts import *
 from src.helper.tools_common import string_none_or_empty
 from src.helper.tools_labeling import *
@@ -217,9 +216,8 @@ def manual_label_post():
 @login_required
 def get_label_description(label_data: str):
     label_data = (label_data or '').strip()
-    description = db.session.execute(
-        select(LabelingData.label_description).where(LabelingData.labeling == label_data)).scalar()
-    return description or ''
+    lbl = get_label_by_id(int(label_data)) if str.isdigit(label_data) else get_label(label_data)
+    return jsonify({'id': lbl.id, 'name': lbl.labeling, 'description': lbl.label_description}) or (None, 404)
 
 
 @app.route('/label_management', methods=['GET'])
@@ -278,26 +276,26 @@ def merge_labels_view():
 @app.route('/label_management/merge_label', methods=['POST'])
 @login_required
 def merge_labels():
-    old_label_names = list(filter(lambda i: not string_none_or_empty(i), request.form.getlist('labelNames[]') or []))
-    new_label_txt = request.form['newLabel']
-    new_label_description = request.form['newLabelDescription'] or ''
-    remark = request.form['remark'] or ''
+    old_label_ids = list(
+        filter(lambda i: i is not None, request.form.getlist('labelIds[]', type=int) or []))
+    new_label_txt = (request.form.get('newLabel', type=str) or '').strip()
+    new_label_description = (request.form.get('newLabelDescription', type=str) or '').strip()
 
-    if string_none_or_empty(new_label_txt) or len(old_label_names) < 2:
+    if string_none_or_empty(new_label_txt) or string_none_or_empty(new_label_description) or len(old_label_ids) < 2:
         return jsonify({'status': 'parameters are not valid'}), 400
 
-    if get_label(new_label_txt) is not None:
-        return jsonify({'status': f'label "{new_label_txt}" already exists'}), 400
-
-    old_labels = [get_label(lbl) for lbl in old_label_names]
-
-    new_label_description += '[Merged: ' + '. '.join(
+    old_labels = [get_label_by_id(lbl_id) for lbl_id in old_label_ids]
+    new_label_description += ' [Merged: ' + '. '.join(
         [f'{lbl.labeling} ({lbl.label_description}) [{lbl.created_by}]' for lbl in old_labels]) + ']'
-    labelled_artifacts = itertools.chain(*[get_artifacts_with_label(lbl) for lbl in old_label_names])
-    for art in labelled_artifacts:
-        label_artifact(art.id, new_label_txt, new_label_description, remark, 0, who_is_signed_in())
-
-    return jsonify({'status': f'merged labels: {", ".join(old_label_names)}'})
+    try:
+        new_label = create_label_with_text(new_label_txt, new_label_description, who_is_signed_in())
+        for lbl in old_labels:
+            artifacts = get_artifacts_with_label(lbl.labeling)
+            for art in artifacts:
+                update_artifact_label_only(art.id, lbl.id, new_label.id)
+    except ValueError as e:
+        return jsonify({'status': str(e)}), 400
+    return jsonify({'status': f'merged labels: {", ".join([l.labeling for l in old_labels])}'})
 
 
 @app.route("/label_management/view_label/<label_id>", methods=['GET'])
