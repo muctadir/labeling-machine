@@ -44,7 +44,7 @@ def update_label(label_id: int, new_name: str, new_description: str):
     db.session.commit()
 
 
-def update_artiefact_label_only(artifact_id: int, old_label_id: int, new_label_id: int):
+def update_artifact_label_only(artifact_id: int, old_label_id: int, new_label_id: int):
     qry = update(ArtifactLabelRelation).where(
         ArtifactLabelRelation.artifact_id == artifact_id, ArtifactLabelRelation.label_id == old_label_id).values(
         label_id=new_label_id, label_update_count=ArtifactLabelRelation.label_update_count + 1)
