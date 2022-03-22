@@ -76,7 +76,7 @@ def create_label_with_text(label_txt: str, label_description: str, creator: str)
 
 
 def get_or_create_label_with_text(label_txt: str, label_description: str, creator: str) -> LabelingData:
-    return get_label(label_txt) or create_label_with_text()
+    return get_label(label_txt) or create_label_with_text(label_txt, label_description, creator)
 
 
 def get_label(label_txt) -> LabelingData:

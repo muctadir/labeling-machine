@@ -176,7 +176,7 @@ def update_label_for_artifact(artifact_id, label_id):
         update_artifact_label(artifact_id, label_id, updated_label, remark, who_is_signed_in())
     except ValueError as e:
         return jsonify({"status": f"{e}"}), 400
-    except TypeError as e:
+    except TypeError:
         return jsonify({'status': 'invalid data'}), 400
 
     return jsonify({"status": f"successfully updated artifact (id:{artifact_id}) with label ({updated_label})"})
@@ -217,7 +217,8 @@ def manual_label_post():
 def get_label_description(label_data: str):
     label_data = (label_data or '').strip()
     lbl = get_label_by_id(int(label_data)) if str.isdigit(label_data) else get_label(label_data)
-    return jsonify({'id': lbl.id, 'name': lbl.labeling, 'description': lbl.label_description}) or (None, 404)
+    return jsonify({'id': lbl.id, 'name': lbl.labeling, 'description': lbl.label_description}) if lbl is not None else (
+        None, 404)
 
 
 @app.route('/label_management', methods=['GET'])
