@@ -73,6 +73,8 @@
                     $("#submit_btn").removeAttr('disabled');
                     $.get('/get_label_description/' + $('#label_selector').val(), function (data) {
                         $('#label_description').val(data.description);
+                    }).fail(function () {
+                        $('#label_description').val('');
                     });
                 }
             });
