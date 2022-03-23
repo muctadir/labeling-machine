@@ -30,7 +30,7 @@
                                         <div class="form-group-sm row">
                                             <label class="col-sm-3 col-form-label-sm">Label</label>
                                             <div class="col-sm-9">
-                                                <select id="labelSelect{{ label['id'] }}" class="form-control">
+                                                <select id="labelSelect{{ data['id'] }}_{{ label['id'] }}" class="form-control">
                                                     {% for lbl in labels %}
                                                         <option {{ 'selected' if lbl == label['label'] else '' }}
                                                                 value="{{ lbl }}">{{ lbl }}</option>
@@ -41,7 +41,7 @@
                                         <div class="form-group-sm row">
                                             <label class="col-sm-3 col-form-label-sm">Remark</label>
                                             <div class="col-sm-9">
-                                                <textarea type="text" id="labelRemark{{ label['id'] }}"
+                                                <textarea type="text" id="labelRemark{{ data['id'] }}_{{ label['id'] }}"
                                                           class="form-control"
                                                           cols="1">{{ label['remark'] or '' }}</textarea>
                                             </div>
@@ -81,8 +81,8 @@
                 let btn = event.currentTarget;
                 let old_lbl_id = btn.getAttribute('data-label-id');
                 let art_id = btn.getAttribute('data-artifact-id');
-                let new_lbl = $(`#labelSelect${old_lbl_id}`).val();
-                let new_remark = $(`#labelRemark${old_lbl_id}`).val();
+                let new_lbl = $(`#labelSelect${art_id}_${old_lbl_id}`).val();
+                let new_remark = $(`#labelRemark${art_id}_${old_lbl_id}`).val();
                 $.ajax({
                     url: `/update_label_for_artifact/${art_id}/${old_lbl_id}`,
                     method: 'PUT',

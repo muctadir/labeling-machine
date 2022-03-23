@@ -164,10 +164,9 @@ def update_label_for_artifact(artifact_id, label_id):
             updated_label):
         return jsonify('{ "status": "Empty arguments" }'), 400
 
-    artifact_id = int(artifact_id)
-    label_id = int(label_id)
-
     try:
+        artifact_id = int(artifact_id)
+        label_id = int(label_id)
         old_remark, old_creator, old_lbl = db.session.execute(
             select(ArtifactLabelRelation.remark, ArtifactLabelRelation.created_by, LabelingData.labeling).join(
                 ArtifactLabelRelation.label).where(
@@ -218,7 +217,7 @@ def get_label_description(label_data: str):
     label_data = (label_data or '').strip()
     lbl = get_label_by_id(int(label_data)) if str.isdigit(label_data) else get_label(label_data)
     return jsonify({'id': lbl.id, 'name': lbl.labeling, 'description': lbl.label_description}) if lbl is not None else (
-        None, 404)
+        '', 404)
 
 
 @app.route('/label_management', methods=['GET'])
