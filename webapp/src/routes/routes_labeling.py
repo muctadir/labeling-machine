@@ -9,6 +9,7 @@ from src.database.queries.artifact_queries import lock_artifact_by, add_artifact
 from src.database.queries.label_queries import delete_label, update_artifact_label, \
     label_artifact, get_label, get_or_create_label_with_text, update_label, get_all_labels, get_label_by_id, \
     create_label_with_text, update_artifact_label_only
+from src.database.queries.theme_queries import get_all_themes
 from src.helper.consts import *
 from src.helper.tools_common import string_none_or_empty
 from src.helper.tools_labeling import *
@@ -224,7 +225,8 @@ def get_label_description(label_data: str):
 @login_required
 def label_management_view():
     all_labels = get_all_labels()
-    return render_template('labeling_pages/label_management.html', all_labels=all_labels)
+    all_themes = get_all_themes()
+    return render_template('labeling_pages/label_management.html', all_labels=all_labels, themes=all_themes)
 
 
 @app.route('/label_management/create_or_update_label', methods=['POST'])
@@ -233,13 +235,14 @@ def create_or_update_label():
     lid = request.form.get('id', type=int)
     new_label_name = (request.form.get('label', type=str) or '').strip()
     new_description = (request.form.get('description', type=str) or '').strip()
+    theme_id = request.form.get('themeId', type=int) or None
     if string_none_or_empty(new_label_name) or string_none_or_empty(new_description):
         return jsonify({"status": "Empty arguments"}), 400
 
     try:
         lbl = get_label_by_id(lid)
-        get_or_create_label_with_text(new_label_name, new_description, who_is_signed_in()) if lbl is None \
-            else update_label(lid, new_label_name, new_description)
+        get_or_create_label_with_text(new_label_name, new_description, who_is_signed_in(), theme_id) if lbl is None \
+            else update_label(lid, new_label_name, new_description, theme_id)
         status = 'success'
         msg = "saved successfully"
     except (ValueError, Exception) as e:

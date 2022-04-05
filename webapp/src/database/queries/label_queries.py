@@ -29,7 +29,7 @@ def delete_label(label_id: int):
     db.session.commit()
 
 
-def update_label(label_id: int, new_name: str, new_description: str):
+def update_label(label_id: int, new_name: str, new_description: str, theme_id: int = None):
     if string_none_or_empty(new_name):
         raise ValueError('label is empty')
 
@@ -40,7 +40,8 @@ def update_label(label_id: int, new_name: str, new_description: str):
 
     db.session.execute(
         update(LabelingData).where(LabelingData.id == label_id).values(labeling=new_name,
-                                                                       label_description=new_description))
+                                                                       label_description=new_description,
+                                                                       theme_id=theme_id))
     db.session.commit()
 
 
@@ -64,19 +65,20 @@ def update_artifact_label(artifact_id: int, old_label_id: int, new_label_txt: st
     db.session.commit()
 
 
-def create_label_with_text(label_txt: str, label_description: str, creator: str) -> LabelingData:
+def create_label_with_text(label_txt: str, label_description: str, creator: str, theme_id: int = None) -> LabelingData:
     existing = db.session.execute(select(LabelingData).where(LabelingData.labeling == label_txt)).all()
     if existing is not None and len(existing) > 0:
         raise ValueError('label already exists')
 
-    lbl = LabelingData(labeling=label_txt, created_by=creator, label_description=label_description)
+    lbl = LabelingData(labeling=label_txt, created_by=creator, label_description=label_description, theme_id=theme_id)
     db.session.add(lbl)
     db.session.commit()
     return lbl
 
 
-def get_or_create_label_with_text(label_txt: str, label_description: str, creator: str) -> LabelingData:
-    return get_label(label_txt) or create_label_with_text(label_txt, label_description, creator)
+def get_or_create_label_with_text(label_txt: str, label_description: str, creator: str,
+                                  theme_id: int = None) -> LabelingData:
+    return get_label(label_txt) or create_label_with_text(label_txt, label_description, creator, theme_id)
 
 
 def get_label(label_txt) -> LabelingData:

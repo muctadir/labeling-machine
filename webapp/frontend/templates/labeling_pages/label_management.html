@@ -14,7 +14,8 @@
                 <th scope="col">#</th>
                 <th scope="col">Label name</th>
                 <th scope="col">Description</th>
-                <th scope="col">Artifact Count</th>
+                <th scope="col">Usage Count</th>
+                <th scope="col">Theme</th>
                 <th scope="col">Operations</th>
             </tr>
             </thead>
@@ -25,13 +26,15 @@
                     <td>{{ lab.labeling }}</td>
                     <td>{{ lab.label_description }}</td>
                     <td>{{ lab.artifacts_relation | length }}</td>
+                    <td><a href="/theme_management/view_theme/{{ lab.theme_id }}">{{ lab.theme.theme }}</a></td>
                     <td>
                         <div class="btn-group" role="group" aria-label="Basic example">
                             <a href="/label_management/view_label/{{ lab.id }}" class="btn btn-success">View</a>
                             <button type="button" class="btn btn-warning" data-bs-toggle="modal"
                                     data-bs-target="#labelInfoModal"
                                     data-bs-id="{{ lab.id }}" data-bs-label="{{ lab.labeling }}"
-                                    data-bs-description="{{ lab.label_description }}">Edit
+                                    data-bs-description="{{ lab.label_description }}"
+                                    data-bs-themeId="{{ lab.theme_id }}">Edit
                             </button>
                             <button type="button" class="btn btn-danger" data-bs-toggle="modal"
                                     data-bs-target="#labelDeleteModal" data-bs-id="{{ lab.id }}"
@@ -69,6 +72,14 @@
                         <div class="mb-3">
                             <label for="labelDescription" class="col-form-label">Label Description:</label>
                             <textarea class="form-control" id="labelDescription"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="themeId" class="col-form-label">Theme:</label>
+                            <select class="form-select" aria-label="select" id="themeId">
+                                {% for theme in themes %}
+                                    <option value="{{ theme.id }}">{{ theme.theme }}</option>
+                                {% endfor %}
+                            </select>
                         </div>
                     </form>
                 </div>
@@ -118,6 +129,7 @@
                 let id = button.getAttribute('data-bs-id');
                 let label = button.getAttribute('data-bs-label');
                 let description = button.getAttribute('data-bs-description');
+                let themeId = button.getAttribute('data-bs-themeId');
 
                 // Update the modal's content.
                 let modalTitle = labelInfoModal.querySelector('.modal-title');
@@ -126,14 +138,16 @@
                 $('#labelId').val(id);
                 $('#labelName').val(label);
                 $('#labelDescription').val(description);
+                $('#themeId').val(themeId);
             });
 
             $('#saveLabel').click(function () {
                 let id = $('#labelId').val();
                 let label = $('#labelName').val();
                 let description = $('#labelDescription').val();
+                let themeId = $('#themeId').val();
                 $.post('/label_management/create_or_update_label',
-                    {'id': id, 'label': label, 'description': description}, function (res) {
+                    {'id': id, 'label': label, 'description': description, 'themeId': themeId}, function (res) {
                         $('#labelMessageHolder').text(res.status);
                         location.reload();
                     })
