@@ -17,7 +17,14 @@ def theme_management_view():
 @login_required
 def view_theme_details(theme_id: int):
     theme = get_theme_by_id(theme_id)
-    return render_template('theme_pages/theme_view.html', theme=theme)
+    labels = {}
+    for lab in theme.labels:
+        artifacts = {}
+        for art_rel in lab.artifacts_relation:
+            artifacts[art_rel.artifact] = artifacts.get(art_rel.artifact, [])
+            artifacts[art_rel.artifact].append(dict(user=art_rel.created_by, remark=art_rel.remark))
+        labels[lab] = artifacts
+    return render_template('theme_pages/theme_view.html', theme=theme, labels=labels)
 
 
 @app.route('/theme_management/create_theme', methods=['GET'])

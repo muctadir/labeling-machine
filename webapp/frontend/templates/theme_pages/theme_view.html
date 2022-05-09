@@ -19,7 +19,7 @@
             <div class="mb-3">
                 <label for="themeLabels" class="col-form-label">Theme Labels:</label>
                 <div class="accordion" id="accordionExample">
-                    {% for label in theme.labels %}
+                    {% for label, artifacts in labels.items() %}
                         <div class="accordion-item">
                             <h2 class="accordion-header" id="heading{{ label.id }}">
                                 <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
@@ -33,10 +33,17 @@
                                     <p><strong>Description: {{ label.label_description }}</strong></p>
 
                                     <ul class="list-group">
-                                        {% for ar in label.artifacts_relation %}
+                                        {% for art, notes in artifacts.items() %}
                                             <div class="list-group-item">
-                                                <small>ID#{{ ar.artifact.id }} | Remark:{{ ar.remark }} | Identifier: {{ ar.artifact.identifier }}</small>
-                                                <p class="mb-1">{{ ar.artifact.text }}</p>
+                                                <strong><small>ID#{{ art.id }} |
+                                                    Identifier: {{ art.identifier }}</small></strong>
+                                                {% for note in notes %}
+                                                    <div class="bg-info mt-1 rounded">
+                                                        <small>Remark: {{ note['remark'] or None }}
+                                                            By: {{ note['user'] }}</small>
+                                                    </div>
+                                                {% endfor %}
+                                                <p class="mb-1">{{ art.text }}</p>
                                             </div>
                                         {% endfor %}
                                     </ul>
