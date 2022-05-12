@@ -59,8 +59,8 @@ def upgrade():
                     sa.Column('label_id', sa.Integer(), nullable=True),
                     sa.Column('remark', sa.Text(), nullable=True),
                     sa.Column('duration_sec', sa.Integer(), nullable=True),
-                    sa.ForeignKeyConstraint(['artifact_id'], ['Artifact.id'], ),
-                    sa.ForeignKeyConstraint(['label_id'], ['Label.id'], ),
+                    sa.ForeignKeyConstraint(('artifact_id',), ['Artifact.id'], ),
+                    sa.ForeignKeyConstraint(('label_id',), ['Label.id'], ),
                     sa.PrimaryKeyConstraint('id')
                     )
     op.create_table('FlaggedArtifact',
@@ -68,7 +68,7 @@ def upgrade():
                     sa.Column('created_at', sa.DateTime(), nullable=True),
                     sa.Column('created_by', sa.Text(), nullable=True),
                     sa.Column('artifact_id', sa.Integer(), nullable=True),
-                    sa.ForeignKeyConstraint(['artifact_id'], ['Artifact.id'], ),
+                    sa.ForeignKeyConstraint(('artifact_id',), ['Artifact.id'], ),
                     sa.PrimaryKeyConstraint('id')
                     )
     op.create_table('LockedArtifact',
@@ -76,7 +76,7 @@ def upgrade():
                     sa.Column('created_at', sa.DateTime(), nullable=True),
                     sa.Column('created_by', sa.Text(), nullable=True),
                     sa.Column('artifact_id', sa.Integer(), nullable=True),
-                    sa.ForeignKeyConstraint(['artifact_id'], ['Artifact.id'], ),
+                    sa.ForeignKeyConstraint(('artifact_id',), ['Artifact.id'], ),
                     sa.PrimaryKeyConstraint('id')
                     )
     op.create_table('Note',
@@ -85,7 +85,7 @@ def upgrade():
                     sa.Column('created_by', sa.Text(), nullable=True),
                     sa.Column('note', sa.Text(), nullable=False),
                     sa.Column('artifact_id', sa.Integer(), nullable=True),
-                    sa.ForeignKeyConstraint(['artifact_id'], ['Artifact.id'], ),
+                    sa.ForeignKeyConstraint(('artifact_id',), ['Artifact.id'], ),
                     sa.PrimaryKeyConstraint('id')
                     )
     # ### end Alembic commands ###
@@ -126,7 +126,13 @@ def import_dummy_data():
     if not app.env == 'production':
         print("Loading dummy artifacts ...", end='')
         fake = faker.Faker()
-        op.bulk_insert(Artifact.__table__, [
+        artifact_table = sa.table('Artifact',
+                                  sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
+                                  sa.Column('created_at', sa.DateTime(), nullable=True),
+                                  sa.Column('created_by', sa.Text(), nullable=True),
+                                  sa.Column('text', sa.Text(), nullable=False))
+
+        op.bulk_insert(artifact_table, [
             dict(text=fake.paragraph(15), created_by='admin') for _ in range(100)
         ])
         print("\t[SUCCESS]")
